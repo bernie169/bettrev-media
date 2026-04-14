@@ -17,7 +17,7 @@ const url = new URL(req.url, 'https://bettrev-media.vercel.app');
   const campaign_id = p.campaign_id || p.campaignid || null;
   const landing_page = p.lp || null;
   const country    = p.country || null;
-  const ip         = req.headers.get('x-forwarded-for') || null;
+const ip = req.headers['x-forwarded-for'] || null;
   const dest       = p.dest || null;
 
   // Dedup key: brand + click_id + event_type
