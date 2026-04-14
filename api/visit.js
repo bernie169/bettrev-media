@@ -8,7 +8,7 @@ const SUPABASE_URL = 'https://gpzovlgzuloevxvutenv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwem92bGd6dWxvZXZ4dnV0ZW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NDE1NDAsImV4cCI6MjA5MDUxNzU0MH0.QJrn3arLWcnY4ACTFpGtbD9pRTIHcMmqr6w8S2OqPdE';
 
 export default async function handler(req, res) {
-const url = new URL(req.url, `https://${req.headers.get('host')}`);
+const url = new URL(req.url, `https://${req.headers['host']}`);
   const p = Object.fromEntries(url.searchParams);
 
   const click_id   = p.cid || p.clickid || null;
