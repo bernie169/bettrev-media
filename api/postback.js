@@ -1,9 +1,23 @@
 const SUPABASE_URL = 'https://gpzovlgzuloevxvutenv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwem92bGd6dWxvZXZ4dnV0ZW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NDE1NDAsImV4cCI6MjA5MDUxNzU0MH0.QJrn3arLWcnY4ACTFpGtbD9pRTIHcMmqr6w8S2OqPdE';
 
-const MONDIAD_POSTBACK = 'https://postback.pbmnd.com/track?uid=28794&clickid={CLICKID}&payout={PAYOUT}';
+const MONDIAD_BASE = 'https://postback.pbmnd.com/track?uid=28794&clickid={CLICKID}&payout={PAYOUT}&goal={GOAL}';
+
+const MONDIAD_GOALS = {
+  registration: '578',
+  deposit: '579',
+  ftd: '579'
+};
 
 const BRAND_CURRENCY = { easybet: 'ZAR' };
+
+function fireMondiad(click_id, payout, goal) {
+  const url = MONDIAD_BASE
+    .replace('{CLICKID}', encodeURIComponent(click_id))
+    .replace('{PAYOUT}', payout || '')
+    .replace('{GOAL}', goal);
+  fetch(url).catch(err => console.error('Mondiad postback error:', err));
+}
 
 export default async function handler(req, res) {
   const url = new URL(req.url, 'https://bettrev-media.vercel.app');
@@ -63,12 +77,9 @@ export default async function handler(req, res) {
     return res.status(500).send('error');
   }
 
-  // Fire to Mondiad on FTD only
-  if (event_type === 'ftd' && click_id) {
-    const mondiadUrl = MONDIAD_POSTBACK
-      .replace('{CLICKID}', encodeURIComponent(click_id))
-      .replace('{PAYOUT}', payout || '');
-    fetch(mondiadUrl).catch(err => console.error('Mondiad postback error:', err));
+  // Fire to Mondiad for registration, deposit and ftd
+  if (click_id && MONDIAD_GOALS[event_type]) {
+    fireMondiad(click_id, payout, MONDIAD_GOALS[event_type]);
   }
 
   return res.status(200).send('OK');
