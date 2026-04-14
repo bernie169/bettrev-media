@@ -14,7 +14,7 @@ const BRAND_CURRENCY = {
   easybet: 'ZAR',
 };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   const url = new URL(req.url);
   const p = Object.fromEntries(url.searchParams);
 
