@@ -1,8 +1,4 @@
 {
-  "functions": {
-    "api/visit.js": { "runtime": "edge" },
-    "api/postback.js": { "runtime": "edge" }
-  },
   "routes": [
     { "src": "/api/visit", "dest": "/api/visit.js" },
     { "src": "/api/postback", "dest": "/api/postback.js" },
