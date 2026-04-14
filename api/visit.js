@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     landing_page, payout: 0, currency: 'ZAR', country, ip, dedup_key, raw_params: p
   };
 
-try {
+  try {
     await fetch(`${SUPABASE_URL}/rest/v1/conversions`, {
       method: 'POST',
       headers: {
@@ -34,25 +34,6 @@ try {
   } catch (err) {
     console.error('Visit insert error:', err);
   }
-
-  if (dest) {
-    const destUrl = new URL(decodeURIComponent(dest));
-    if (click_id) destUrl.searchParams.set('t1', click_id);
-    if (zone_id) destUrl.searchParams.set('s1', zone_id);
-    if (campaign_id) destUrl.searchParams.set('campaign_id', campaign_id);
-    return res.redirect(302, destUrl.toString());
-  }
-
-  return res.status(200).send('visit recorded');
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(record)
-  }).catch(err => console.error('Visit insert error:', err));
 
   if (dest) {
     const destUrl = new URL(decodeURIComponent(dest));
