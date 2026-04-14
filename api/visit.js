@@ -3,7 +3,6 @@
 // Use this as your BeMob destination URL instead of the raw Easybet link
 // e.g. https://your-vercel.app/api/visit?brand=easybet&cid={clickId}&s1={trafficSourceId}&campaign_id={campaignId}&lp=spinwheel&dest=https://ebpartners.click/o/lWk0jB?lpage=L1QjNG
 
-export const config = { runtime: 'edge' };
 
 const SUPABASE_URL = 'https://gpzovlgzuloevxvutenv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwem92bGd6dWxvZXZ4dnV0ZW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NDE1NDAsImV4cCI6MjA5MDUxNzU0MH0.QJrn3arLWcnY4ACTFpGtbD9pRTIHcMmqr6w8S2OqPdE';
