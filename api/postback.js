@@ -19,7 +19,7 @@ function fireMondiad(click_id, payout, goal) {
   fetch(url).catch(err => console.error('Mondiad postback error:', err));
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const url = new URL(req.url, 'https://bettrev-media.vercel.app');
   const p = Object.fromEntries(url.searchParams);
 
