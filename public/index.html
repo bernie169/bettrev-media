@@ -500,6 +500,8 @@ async function init(brand) {
   await loadBrands();
   selectBrand(brand, null, true);
   setRange('today', document.querySelector('.date-btn'));
+  // Auto-refresh every 60 seconds
+  setInterval(() => loadData(), 60000);
 }
 
 // ── BRANDS ──
@@ -705,15 +707,29 @@ function copyUrl(id) {
 function setRange(range, btn) {
   document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  const today = new Date(); today.setHours(0,0,0,0);
-  if(range==='today')     { currentFrom=today.toISOString(); currentTo=new Date(today.getTime()+86400000).toISOString(); }
-  else if(range==='yesterday') { const y=new Date(today.getTime()-86400000); currentFrom=y.toISOString(); currentTo=today.toISOString(); }
-  else if(range==='7d')   { currentFrom=new Date(today.getTime()-6*86400000).toISOString(); currentTo=new Date(today.getTime()+86400000).toISOString(); }
-  else if(range==='30d')  { currentFrom=new Date(today.getTime()-29*86400000).toISOString(); currentTo=new Date(today.getTime()+86400000).toISOString(); }
-  else                    { currentFrom=null; currentTo=null; }
+  const now = new Date();
+  // SAST midnight = UTC midnight minus 2 hours
+  const y = now.getFullYear(), mo = now.getMonth(), d = now.getDate();
+  const todayStart = new Date(Date.UTC(y, mo, d) - 2*3600000); // midnight SAST in UTC
+  const todayEnd = new Date(todayStart.getTime() + 86400000);
+  if(range==='today') {
+    currentFrom = todayStart.toISOString();
+    currentTo = todayEnd.toISOString();
+  } else if(range==='yesterday') {
+    currentFrom = new Date(todayStart.getTime() - 86400000).toISOString();
+    currentTo = todayStart.toISOString();
+  } else if(range==='7d') {
+    currentFrom = new Date(todayStart.getTime() - 6*86400000).toISOString();
+    currentTo = todayEnd.toISOString();
+  } else if(range==='30d') {
+    currentFrom = new Date(todayStart.getTime() - 29*86400000).toISOString();
+    currentTo = todayEnd.toISOString();
+  } else {
+    currentFrom = null;
+    currentTo = null;
+  }
   loadData();
 }
-
 function setCustomRange() {
   const from = document.getElementById('date-from').value;
   const to   = document.getElementById('date-to').value;
