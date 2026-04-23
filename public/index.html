@@ -708,8 +708,8 @@ function setRange(range, btn) {
   const today = new Date(); today.setHours(0,0,0,0);
   if(range==='today')     { currentFrom=today.toISOString(); currentTo=new Date(today.getTime()+86400000).toISOString(); }
   else if(range==='yesterday') { const y=new Date(today.getTime()-86400000); currentFrom=y.toISOString(); currentTo=today.toISOString(); }
-  else if(range==='7d')   { currentFrom=new Date(today.getTime()-7*86400000).toISOString(); currentTo=null; }
-  else if(range==='30d')  { currentFrom=new Date(today.getTime()-30*86400000).toISOString(); currentTo=null; }
+  else if(range==='7d')   { currentFrom=new Date(today.getTime()-6*86400000).toISOString(); currentTo=new Date(today.getTime()+86400000).toISOString(); }
+  else if(range==='30d')  { currentFrom=new Date(today.getTime()-29*86400000).toISOString(); currentTo=new Date(today.getTime()+86400000).toISOString(); }
   else                    { currentFrom=null; currentTo=null; }
   loadData();
 }
