@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BetTrev Tracker</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/cs2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
 
 :root {
   --bg:#0a0a0a; --surface:#111; --surface2:#181818;
@@ -499,7 +499,7 @@ if (sessionStorage.getItem('auth')) {
 async function init(brand) {
   await loadBrands();
   selectBrand(brand, null, true);
-  setRange('7d', document.querySelector('.date-btn'));
+  setRange('today', document.querySelector('.date-btn'));
 }
 
 // ── BRANDS ──
@@ -553,7 +553,7 @@ function selectBrand(slug, btn, silent) {
 
 // ── DATA ──
 async function loadData() {
-  let url = `/rest/v1/conversions?select=*&order=created_at.desc&limit=3000`;
+  let url = `/rest/v1/conversions?select=*&order=created_at.desc&limit=50000`;
   if (currentBrand !== '__all__') url += `&brand=eq.${currentBrand}`;
   if (currentFrom) url += `&created_at=gte.${currentFrom}`;
   if (currentTo) url += `&created_at=lte.${currentTo}`;
