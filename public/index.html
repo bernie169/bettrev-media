@@ -464,10 +464,39 @@ const VALID_PASSWORD = 'Chutney1!';
 const COLORS = ['#e8ff47','#47ffb2','#7b7fff','#ff9f47','#ff6b47','#47d4ff','#ff47b2','#b2ff47','#ffffff'];
 
 let currentBrand = '__all__';
-let currentFrom = null;
-let currentTo = null;
+let currentRange = 'today';
 let brands = [];
 let selectedColor = COLORS[0];
+let refreshTimer = null;
+
+// ── SAST HELPERS ──
+// SAST = UTC+2. Returns UTC ISO string for midnight SAST on a given day offset.
+// offset=0 = today midnight SAST, offset=-1 = yesterday midnight SAST, etc.
+function sastMidnight(offset) {
+  const now = new Date();
+  // Current date in SAST
+  const sastNow = new Date(now.getTime() + 2*3600*1000);
+  const y = sastNow.getUTCFullYear();
+  const m = sastNow.getUTCMonth();
+  const d = sastNow.getUTCDate();
+  // Midnight SAST = 22:00 UTC previous day
+  const midnight = new Date(Date.UTC(y, m, d + offset) - 2*3600*1000);
+  return midnight.toISOString();
+}
+
+function getDateParams(range) {
+  if (range === 'today') {
+    return { gte: sastMidnight(0), lte: sastMidnight(1) };
+  } else if (range === 'yesterday') {
+    return { gte: sastMidnight(-1), lte: sastMidnight(0) };
+  } else if (range === '7d') {
+    return { gte: sastMidnight(-6), lte: sastMidnight(1) };
+  } else if (range === '30d') {
+    return { gte: sastMidnight(-29), lte: sastMidnight(1) };
+  } else {
+    return {}; // all time - no filter
+  }
+}
 
 // ── AUTH ──
 function doLogin() {
@@ -482,14 +511,15 @@ function doLogin() {
     document.getElementById('login-error').style.display = 'block';
   }
 }
-document.getElementById('login-password').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if(e.key==='Enter') doLogin();
+});
 function doLogout() {
   sessionStorage.removeItem('auth');
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
+  if (refreshTimer) clearInterval(refreshTimer);
 }
-
 if (sessionStorage.getItem('auth')) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -501,7 +531,8 @@ async function init(brand) {
   selectBrand(brand, null, true);
   setRange('today', document.querySelector('.date-btn'));
   // Auto-refresh every 60 seconds
-  setInterval(() => loadData(), 60000);
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => loadData(), 60000);
 }
 
 // ── BRANDS ──
@@ -511,100 +542,75 @@ async function loadBrands() {
   renderSidebarBrands();
   renderAdminBrands();
 }
-
 function renderSidebarBrands() {
-  document.getElementById('brand-list').innerHTML = brands.map(b => `
-    <button class="brand-btn" id="brand-btn-${b.slug}" onclick="selectBrand('${b.slug}',this)">
-      <div class="brand-dot" style="background:${b.color}"></div>${b.name}
-    </button>`).join('');
+  document.getElementById('brand-list').innerHTML = brands.map(b =>
+    '<button class="brand-btn" id="brand-btn-'+b.slug+'" onclick="selectBrand(''+b.slug+'',this)"><div class="brand-dot" style="background:'+b.color+'"></div>'+b.name+'</button>'
+  ).join('');
 }
-
 function renderAdminBrands() {
   const el = document.getElementById('admin-brand-list');
   if (!brands.length) { el.innerHTML = '<div class="empty">No brands yet</div>'; return; }
-  el.innerHTML = brands.map(b => `
-    <div class="brand-admin-row">
-      <div class="brand-admin-dot" style="background:${b.color}"></div>
-      <div class="brand-admin-info">
-        <div class="brand-admin-name">${b.name}</div>
-        <div class="brand-admin-meta">${b.slug} · ${b.currency||'ZAR'}</div>
-      </div>
-      <button class="del-btn" onclick="deleteBrand('${b.id}','${b.slug}','${b.name}')">Delete</button>
-    </div>`).join('');
+  el.innerHTML = brands.map(b =>
+    '<div class="brand-admin-row"><div class="brand-admin-dot" style="background:'+b.color+'"></div><div class="brand-admin-info"><div class="brand-admin-name">'+b.name+'</div><div class="brand-admin-meta">'+b.slug+' · '+(b.currency||'ZAR')+'</div></div><button class="del-btn" onclick="deleteBrand(''+b.id+'',''+b.slug+'',''+b.name+'')">Delete</button></div>'
+  ).join('');
   renderPostbackUrls();
 }
-
 function selectBrand(slug, btn, silent) {
   currentBrand = slug;
   sessionStorage.setItem('lastBrand', slug);
   document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
   const target = slug === '__all__' ? document.getElementById('brand-all-btn') : document.getElementById('brand-btn-'+slug);
-  if (btn) btn.classList.add('active');
-  else if (target) target.classList.add('active');
-
+  if (btn) btn.classList.add('active'); else if (target) target.classList.add('active');
   const brand = brands.find(b => b.slug === slug);
   const color = brand ? brand.color : '#e8ff47';
   document.documentElement.style.setProperty('--brand-color', color);
   document.getElementById('topbar-title').textContent = slug === '__all__' ? 'All Brands' : (brand ? brand.name : slug);
-  document.getElementById('topbar-sub').textContent = slug === '__all__' ? 'combined view' : `${brand?.currency||'ZAR'} · brand dashboard`;
+  document.getElementById('topbar-sub').textContent = slug === '__all__' ? 'combined view' : ((brand && brand.currency)||'ZAR')+' · brand dashboard';
   document.getElementById('ov-brand-card').style.display = slug === '__all__' ? 'block' : 'none';
-
   renderPostbackUrls();
   if (!silent) loadData();
 }
 
 // ── DATA ──
 async function loadData() {
-  let url = `/rest/v1/conversions?select=*&order=created_at.desc&limit=50000`;
-  if (currentBrand !== '__all__') url += `&brand=eq.${currentBrand}`;
-  if (currentFrom) url += `&created_at=gte.${currentFrom}`;
-  if (currentTo) url += `&created_at=lte.${currentTo}`;
+  const params = getDateParams(currentRange);
+  let url = '/rest/v1/conversions?select=*&order=created_at.desc&limit=50000';
+  if (currentBrand !== '__all__') url += '&brand=eq.'+currentBrand;
+  if (params.gte) url += '&created_at=gte.'+params.gte;
+  if (params.lte) url += '&created_at=lte.'+params.lte;
   const res = await sbFetch(url);
   const data = await res.json();
   render(Array.isArray(data) ? data : []);
-  document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  document.getElementById('last-updated').textContent = 'Updated '+new Date().toLocaleTimeString();
 }
 
 function render(data) {
-  const visits = data.filter(d => d.event_type === 'visit').length;
-  const regs   = data.filter(d => d.event_type === 'registration').length;
-  const ftds   = data.filter(d => d.event_type === 'ftd').length;
-  const deps   = data.filter(d => d.event_type === 'deposit').length;
-
-  // Payout — sum FTDs, show currency
-  const ftdData = data.filter(d => d.event_type === 'ftd');
-  const totalPayout = ftdData.reduce((s,d) => s + (d.payout||0), 0);
-  const currency = currentBrand === '__all__' ? '' : (brands.find(b=>b.slug===currentBrand)?.currency || 'ZAR');
-
+  const visits = data.filter(d => d.event_type==='visit').length;
+  const regs   = data.filter(d => d.event_type==='registration').length;
+  const ftds   = data.filter(d => d.event_type==='ftd').length;
+  const deps   = data.filter(d => d.event_type==='deposit').length;
+  const ftdData = data.filter(d => d.event_type==='ftd');
+  const totalPayout = ftdData.reduce((s,d) => s+(d.payout||0), 0);
+  const currency = currentBrand==='__all__' ? '' : ((brands.find(b=>b.slug===currentBrand)||{}).currency||'ZAR');
   document.getElementById('m-visits').textContent = visits.toLocaleString();
   document.getElementById('m-regs').textContent   = regs.toLocaleString();
   document.getElementById('m-ftds').textContent   = ftds.toLocaleString();
   document.getElementById('m-deps').textContent   = deps.toLocaleString();
-  document.getElementById('m-rr').textContent = visits > 0 ? ((regs/visits)*100).toFixed(1)+'%' : '—';
-  document.getElementById('m-rf').textContent = visits > 0 ? ((ftds/visits)*100).toFixed(1)+'%' : '—';
-  document.getElementById('m-ftds-sub').textContent = totalPayout > 0
-    ? `${currency} ${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} earned`
-    : 'first deposits';
-
-  // Overview
-  renderBreakdown('ov-zone-regs', data.filter(d=>d.event_type==='registration'), 'zone_id');
-  renderBreakdown('ov-zone-ftds', data.filter(d=>d.event_type==='ftd'), 'zone_id');
-  renderBreakdown('ov-brand-ftds', data.filter(d=>d.event_type==='ftd'), 'brand');
-
-  // Campaigns
-  renderBreakdown('camp-visits', data.filter(d=>d.event_type==='visit'), 'campaign_id');
-  renderBreakdown('camp-regs',   data.filter(d=>d.event_type==='registration'), 'campaign_id');
-  renderBreakdown('camp-ftds',   data.filter(d=>d.event_type==='ftd'), 'campaign_id');
-  renderBreakdown('lp-visits',   data.filter(d=>d.event_type==='visit'), 'landing_page');
-  renderBreakdown('lp-regs',     data.filter(d=>d.event_type==='registration'), 'landing_page');
-  renderBreakdown('lp-ftds',     data.filter(d=>d.event_type==='ftd'), 'landing_page');
-
-  // Zones
-  renderBreakdown('zone-visits', data.filter(d=>d.event_type==='visit'), 'zone_id');
-  renderBreakdown('zone-regs',   data.filter(d=>d.event_type==='registration'), 'zone_id');
-  renderBreakdown('zone-ftds',   data.filter(d=>d.event_type==='ftd'), 'zone_id');
-
-  // Event log
+  document.getElementById('m-rr').textContent = visits>0 ? ((regs/visits)*100).toFixed(1)+'%' : '—';
+  document.getElementById('m-rf').textContent = visits>0 ? ((ftds/visits)*100).toFixed(1)+'%' : '—';
+  document.getElementById('m-ftds-sub').textContent = totalPayout>0 ? currency+' '+totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' earned' : 'first deposits';
+  renderBreakdown('ov-zone-regs',  data.filter(d=>d.event_type==='registration'), 'zone_id');
+  renderBreakdown('ov-zone-ftds',  data.filter(d=>d.event_type==='ftd'),          'zone_id');
+  renderBreakdown('ov-brand-ftds', data.filter(d=>d.event_type==='ftd'),          'brand');
+  renderBreakdown('camp-visits',   data.filter(d=>d.event_type==='visit'),        'campaign_id');
+  renderBreakdown('camp-regs',     data.filter(d=>d.event_type==='registration'), 'campaign_id');
+  renderBreakdown('camp-ftds',     data.filter(d=>d.event_type==='ftd'),          'campaign_id');
+  renderBreakdown('lp-visits',     data.filter(d=>d.event_type==='visit'),        'landing_page');
+  renderBreakdown('lp-regs',       data.filter(d=>d.event_type==='registration'), 'landing_page');
+  renderBreakdown('lp-ftds',       data.filter(d=>d.event_type==='ftd'),          'landing_page');
+  renderBreakdown('zone-visits',   data.filter(d=>d.event_type==='visit'),        'zone_id');
+  renderBreakdown('zone-regs',     data.filter(d=>d.event_type==='registration'), 'zone_id');
+  renderBreakdown('zone-ftds',     data.filter(d=>d.event_type==='ftd'),          'zone_id');
   renderEventLog(data.slice(0,200));
 }
 
@@ -613,130 +619,52 @@ function renderBreakdown(id, events, field) {
   if (!el) return;
   if (!events.length) { el.innerHTML = '<div class="empty">No data yet</div>'; return; }
   const counts = {};
-  events.forEach(e => { const k = e[field] || '(none)'; counts[k] = (counts[k]||0)+1; });
+  events.forEach(e => { const k=e[field]||'(none)'; counts[k]=(counts[k]||0)+1; });
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const max = sorted[0][1];
-  el.innerHTML = sorted.map(([k,v]) => `
-    <div class="breakdown-row">
-      <span class="breakdown-key" title="${k}">${k}</span>
-      <span class="breakdown-val">${v}</span>
-    </div>
-    <div class="breakdown-bar">
-      <div class="breakdown-bar-fill" style="width:${(v/max*100).toFixed(0)}%;background:var(--brand-color);opacity:.6"></div>
-    </div>`).join('');
+  el.innerHTML = sorted.map(([k,v]) =>
+    '<div class="breakdown-row"><span class="breakdown-key" title="'+k+'">'+k+'</span><span class="breakdown-val">'+v+'</span></div>'+
+    '<div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:'+((v/max*100).toFixed(0))+'%;background:var(--brand-color);opacity:.6"></div></div>'
+  ).join('');
 }
 
 function renderEventLog(data) {
   const el = document.getElementById('events-table');
   if (!data.length) { el.innerHTML = '<div class="empty">No events in this date range</div>'; return; }
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>Timestamp</th><th>Event</th><th>Brand</th>
-      <th>Campaign</th><th>Landing Page</th><th>Zone</th>
-      <th>Country</th><th>Payout</th>
-    </tr></thead>
-    <tbody>${data.map(d => {
+  el.innerHTML = '<table><thead><tr><th>Timestamp</th><th>Event</th><th>Brand</th><th>Campaign</th><th>Landing Page</th><th>Zone</th><th>Country</th><th>Payout</th></tr></thead><tbody>'+
+    data.map(d => {
       const date = new Date(d.created_at);
-      const cur = brands.find(b=>b.slug===d.brand)?.currency || 'ZAR';
-      return `<tr>
-        <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
-        <td><span class="badge ${d.event_type}">${d.event_type}</span></td>
-        <td>${d.brand||'—'}</td>
-        <td>${d.campaign_id||'—'}</td>
-        <td>${d.landing_page||'—'}</td>
-        <td>${d.zone_id||'—'}</td>
-        <td>${d.country||'—'}</td>
-        <td>${d.payout>0 ? cur+' '+Number(d.payout).toFixed(2) : '—'}</td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table>`;
-}
-
-// ── POSTBACK URLS ──
-function renderPostbackUrls() {
-  const el = document.getElementById('admin-postbacks');
-  if (!brands.length) { el.innerHTML = '<div class="empty">No brands yet — add one first</div>'; return; }
-  const base = window.location.origin;
-
-  el.innerHTML = brands.map(b => {
-    const visitUrl = `${base}/api/visit?brand=${b.slug}&cid={clickId}&s1={trafficSourceId}&campaign_id={campaignId}&lp=CHANGEME&dest=${encodeURIComponent('https://ebpartners.click/o/lWk0jB')}`;
-    const regUrl  = `${base}/api/postback?brand=${b.slug}&event=registration&cid={t1}&s1={s1}&campaign_id={campaignid}&lp={lpage}`;
-    const ftdUrl  = `${base}/api/postback?brand=${b.slug}&event=ftd&cid={t1}&s1={s1}&campaign_id={campaignid}&lp={lpage}&payout={payout}`;
-    const depUrl  = `${base}/api/postback?brand=${b.slug}&event=deposit&cid={t1}&s1={s1}&campaign_id={campaignid}&lp={lpage}&payout={payout}`;
-
-    return `
-    <div style="margin-bottom:24px">
-      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:${b.color};font-family:'DM Mono',monospace;margin-bottom:12px;font-weight:600">${b.name} (${b.currency||'ZAR'})</div>
-
-      <div class="postback-block">
-        <div class="postback-label" style="color:var(--visit)">▸ BeMob destination URL (replaces your current destination)</div>
-        <div class="postback-box" id="pb-visit-${b.slug}">${visitUrl.replace(/CHANGEME/,'<span style="color:var(--danger)">CHANGEME</span>')}<button class="copy-btn" onclick="copyUrl('pb-visit-${b.slug}')">Copy</button></div>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:4px">⚠ Change CHANGEME to your landing page name e.g. spinwheel or scratchcard</div>
-      </div>
-
-      <div class="postback-block" style="margin-top:12px">
-        <div class="postback-label" style="color:var(--reg)">▸ Registration postback — send to ${b.name}</div>
-        <div class="postback-box" id="pb-reg-${b.slug}">${regUrl}<button class="copy-btn" onclick="copyUrl('pb-reg-${b.slug}')">Copy</button></div>
-      </div>
-
-      <div class="postback-block" style="margin-top:12px">
-        <div class="postback-label" style="color:var(--ftd)">▸ FTD postback — send to ${b.name}</div>
-        <div class="postback-box" id="pb-ftd-${b.slug}">${ftdUrl}<button class="copy-btn" onclick="copyUrl('pb-ftd-${b.slug}')">Copy</button></div>
-      </div>
-
-      <div class="postback-block" style="margin-top:12px">
-        <div class="postback-label" style="color:var(--deposit)">▸ Deposit postback — send to ${b.name}</div>
-        <div class="postback-box" id="pb-dep-${b.slug}">${depUrl}<button class="copy-btn" onclick="copyUrl('pb-dep-${b.slug}')">Copy</button></div>
-      </div>
-    </div>
-    <hr style="border-color:var(--border);margin:16px 0">`;
-  }).join('');
-}
-
-function copyUrl(id) {
-  const el = document.getElementById(id);
-  const text = el.innerText.replace('Copy','').trim();
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = el.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
+      const cur = ((brands.find(b=>b.slug===d.brand)||{}).currency)||'ZAR';
+      return '<tr><td>'+date.toLocaleDateString()+' '+date.toLocaleTimeString()+'</td><td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td><td>'+(d.brand||'—')+'</td><td>'+(d.campaign_id||'—')+'</td><td>'+(d.landing_page||'—')+'</td><td>'+(d.zone_id||'—')+'</td><td>'+(d.country||'—')+'</td><td>'+(d.payout>0 ? cur+' '+Number(d.payout).toFixed(2) : '—')+'</td></tr>';
+    }).join('')+
+  '</tbody></table>';
 }
 
 // ── DATE RANGE ──
 function setRange(range, btn) {
-  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  const now = new Date();
-  // SAST midnight = UTC midnight minus 2 hours
-  const y = now.getFullYear(), mo = now.getMonth(), d = now.getDate();
-  const todayStart = new Date(Date.UTC(y, mo, d) - 2*3600000); // midnight SAST in UTC
-  const todayEnd = new Date(todayStart.getTime() + 86400000);
-  if(range==='today') {
-    currentFrom = todayStart.toISOString();
-    currentTo = todayEnd.toISOString();
-  } else if(range==='yesterday') {
-    currentFrom = new Date(todayStart.getTime() - 86400000).toISOString();
-    currentTo = todayStart.toISOString();
-  } else if(range==='7d') {
-    currentFrom = new Date(todayStart.getTime() - 6*86400000).toISOString();
-    currentTo = todayEnd.toISOString();
-  } else if(range==='30d') {
-    currentFrom = new Date(todayStart.getTime() - 29*86400000).toISOString();
-    currentTo = todayEnd.toISOString();
-  } else {
-    currentFrom = null;
-    currentTo = null;
-  }
+  currentRange = range;
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
   loadData();
 }
 function setCustomRange() {
   const from = document.getElementById('date-from').value;
   const to   = document.getElementById('date-to').value;
-  if(from) currentFrom=new Date(from).toISOString();
-  if(to)   currentTo=new Date(new Date(to).getTime()+86400000).toISOString();
-  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));
-  loadData();
+  if (!from && !to) return;
+  currentRange = 'custom';
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  // Override getDateParams for custom - handled inline
+  const params = {};
+  if (from) params.gte = new Date(from).toISOString();
+  if (to)   params.lte = new Date(new Date(to).getTime()+86400000).toISOString();
+  let url = '/rest/v1/conversions?select=*&order=created_at.desc&limit=50000';
+  if (currentBrand !== '__all__') url += '&brand=eq.'+currentBrand;
+  if (params.gte) url += '&created_at=gte.'+params.gte;
+  if (params.lte) url += '&created_at=lte.'+params.lte;
+  sbFetch(url).then(r => r.json()).then(data => {
+    render(Array.isArray(data) ? data : []);
+    document.getElementById('last-updated').textContent = 'Updated '+new Date().toLocaleTimeString();
+  });
 }
 
 // ── TABS ──
@@ -747,15 +675,41 @@ function showTab(name) {
   document.getElementById('tab-btn-'+name).classList.add('active');
 }
 
+// ── POSTBACK URLS ──
+function renderPostbackUrls() {
+  const el = document.getElementById('admin-postbacks');
+  if (!brands.length) { el.innerHTML = '<div class="empty">No brands yet — add one first</div>'; return; }
+  const base = window.location.origin;
+  el.innerHTML = brands.map(b => {
+    const regUrl = base+'/api/postback?brand='+b.slug+'&event=registration&cid={t1}&s1={s1}&campaign_id={campaignid}&lp={lpage}';
+    const ftdUrl = base+'/api/postback?brand='+b.slug+'&event=ftd&cid={t1}&s1={s1}&campaign_id={campaignid}&lp={lpage}&payout={payout}';
+    const depUrl = base+'/api/postback?brand='+b.slug+'&event=deposit&cid={t1}&s1={s1}&campaign_id={campaignid}&lp={lpage}&payout={payout}';
+    return '<div style="margin-bottom:24px"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:'+b.color+';font-family:'DM Mono',monospace;margin-bottom:12px;font-weight:600">'+b.name+' ('+(b.currency||'ZAR')+')</div>'+
+      '<div class="postback-block"><div class="postback-label" style="color:var(--reg)">▸ Registration postback</div><div class="postback-box" id="pb-reg-'+b.slug+'">'+regUrl+'<button class="copy-btn" onclick="copyUrl('pb-reg-'+b.slug+'')">Copy</button></div></div>'+
+      '<div class="postback-block" style="margin-top:12px"><div class="postback-label" style="color:var(--ftd)">▸ FTD postback</div><div class="postback-box" id="pb-ftd-'+b.slug+'">'+ftdUrl+'<button class="copy-btn" onclick="copyUrl('pb-ftd-'+b.slug+'')">Copy</button></div></div>'+
+      '<div class="postback-block" style="margin-top:12px"><div class="postback-label" style="color:var(--deposit)">▸ Deposit postback</div><div class="postback-box" id="pb-dep-'+b.slug+'">'+depUrl+'<button class="copy-btn" onclick="copyUrl('pb-dep-'+b.slug+'')">Copy</button></div></div>'+
+      '</div><hr style="border-color:var(--border);margin:16px 0">';
+  }).join('');
+}
+function copyUrl(id) {
+  const el = document.getElementById(id);
+  const text = el.innerText.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
 // ── ADD BRAND MODAL ──
 function openAddBrand() {
   selectedColor = COLORS[0];
   document.getElementById('brand-name').value='';
   document.getElementById('brand-slug').value='';
   document.getElementById('brand-currency').value='ZAR';
-  document.getElementById('color-row').innerHTML = COLORS.map(c=>`
-    <div class="color-swatch ${c===selectedColor?'selected':''}"
-      style="background:${c}" onclick="pickColor('${c}',this)"></div>`).join('');
+  document.getElementById('color-row').innerHTML = COLORS.map(c =>
+    '<div class="color-swatch '+(c===selectedColor?'selected':'')+'" style="background:'+c+'" onclick="pickColor(''+c+'',this)"></div>'
+  ).join('');
   document.getElementById('brand-modal').classList.add('open');
 }
 function closeModal() { document.getElementById('brand-modal').classList.remove('open'); }
@@ -765,25 +719,20 @@ function pickColor(c,el) {
   el.classList.add('selected');
 }
 function autoSlug() {
-  document.getElementById('brand-slug').value =
-    document.getElementById('brand-name').value.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  document.getElementById('brand-slug').value = document.getElementById('brand-name').value.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
 }
 async function saveBrand() {
-  const name     = document.getElementById('brand-name').value.trim();
-  const slug     = document.getElementById('brand-slug').value.trim();
+  const name = document.getElementById('brand-name').value.trim();
+  const slug = document.getElementById('brand-slug').value.trim();
   const currency = document.getElementById('brand-currency').value;
   if(!name||!slug){alert('Name and slug required');return;}
-  await sbFetch('/rest/v1/brands',{
-    method:'POST',
-    body:JSON.stringify({name,slug,color:selectedColor,currency}),
-    headers:{'Content-Type':'application/json','Prefer':'return=minimal'}
-  });
+  await sbFetch('/rest/v1/brands',{method:'POST',body:JSON.stringify({name,slug,color:selectedColor,currency}),headers:{'Content-Type':'application/json','Prefer':'return=minimal'}});
   closeModal();
   await loadBrands();
 }
 async function deleteBrand(id,slug,name) {
-  if(!confirm(`Delete "${name}"? Conversion data is kept.`)) return;
-  await sbFetch(`/rest/v1/brands?id=eq.${id}`,{method:'DELETE'});
+  if(!confirm('Delete "'+name+'"? Conversion data is kept.')) return;
+  await sbFetch('/rest/v1/brands?id=eq.'+id,{method:'DELETE'});
   await loadBrands();
   if(currentBrand===slug) selectBrand('__all__',document.getElementById('brand-all-btn'));
 }
