@@ -554,6 +554,19 @@ function selectBrand(slug, btn, silent) {
 }
 
 // ── DATA ──
+function getDateParams(range) {
+  function sastMidnight(offsetDays) {
+    const now = new Date();
+    const sastNow = new Date(now.getTime() + 2 * 3600 * 1000);
+    const y = sastNow.getUTCFullYear(), mo = sastNow.getUTCMonth(), d = sastNow.getUTCDate();
+    return new Date(Date.UTC(y, mo, d + offsetDays) - 2 * 3600 * 1000).toISOString();
+  }
+  if (range === 'today')     return { gte: sastMidnight(0),   lte: sastMidnight(1) };
+  if (range === 'yesterday') return { gte: sastMidnight(-1),  lte: sastMidnight(0) };
+  if (range === '7d')        return { gte: sastMidnight(-6),  lte: sastMidnight(1) };
+  if (range === '30d')       return { gte: sastMidnight(-29), lte: sastMidnight(1) };
+  return {};
+}
 async function loadData() {
   const params = getDateParams(currentRange);
   const brandFilter = currentBrand !== '__all__' ? '&brand=eq.' + currentBrand : '';
