@@ -725,6 +725,7 @@ function copyUrl(id) {
 
 // ── DATE RANGE ──
 function setRange(range, btn) {
+  currentRange = range;
   document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   // SAST = UTC+2. sastMidnight(0) = today midnight SAST in UTC
