@@ -570,53 +570,60 @@ function getDateParams(range) {
 async function loadData() {
   const params = getDateParams(currentRange);
   const brandFilter = currentBrand !== '__all__' ? '&brand=eq.' + currentBrand : '';
-  const dateGte = params.gte ? '&created_at=gte.' + params.gte : '';
-  const dateLte = params.lte ? '&created_at=lte.' + params.lte : '';
-  const filters = brandFilter + dateGte + dateLte;
+  const dateFilter = (params.gte ? '&created_at=gte.' + params.gte : '') + (params.lte ? '&created_at=lte.' + params.lte : '');
 
-  // Use ?select=count to get server-side totals without row limits
   async function getCount(eventType) {
-    const r = await sbFetch('/rest/v1/conversions?select=count&event_type=eq.' + eventType + filters);
-    const j = await r.json();
-    return (Array.isArray(j) && j[0] && j[0].count != null) ? parseInt(j[0].count) : 0;
+    const r = await sbFetch(
+      '/rest/v1/conversions?select=*' + brandFilter + dateFilter + '&event_type=eq.' + eventType + '&limit=1',
+      { headers: { 'Prefer': 'count=exact' } }
+    );
+    const cr = r.headers.get('content-range');
+    if (!cr) return 0;
+    const parts = cr.split('/');
+    return parts[1] === '*' ? 0 : (parseInt(parts[1]) || 0);
   }
 
-  const [visits, regs, ftds, deps, recentRes] = await Promise.all([
+  const [visits, regs, ftds, deps] = await Promise.all([
     getCount('visit'),
     getCount('registration'),
     getCount('ftd'),
-    getCount('deposit'),
-    sbFetch('/rest/v1/conversions?select=*&order=created_at.desc' + filters + '&limit=200')
+    getCount('deposit')
   ]);
 
-  const recentData = await recentRes.json();
-  render(visits, regs, ftds, deps, Array.isArray(recentData) ? recentData : []);
+  const sampleRes = await sbFetch(
+    '/rest/v1/conversions?select=*&order=created_at.desc&limit=500' + brandFilter + dateFilter
+  );
+  const sample = await sampleRes.json();
+  const recentData = Array.isArray(sample) ? sample : [];
+
+  render({ visits, regs, ftds, deps, recentData });
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
 
-function render(visits, regs, ftds, deps, recentData) {
-  const brand = brands.find(b => b.slug === currentBrand);
-  const currency = brand ? (brand.currency || 'ZAR') : '';
+function render({ visits, regs, ftds, deps, recentData }) {
+  const currency = currentBrand === '__all__' ? '' : ((brands.find(b => b.slug === currentBrand) || {}).currency || 'ZAR');
   document.getElementById('m-visits').textContent = visits.toLocaleString();
-  document.getElementById('m-regs').textContent = regs.toLocaleString();
-  document.getElementById('m-ftds').textContent = ftds.toLocaleString();
-  document.getElementById('m-deps').textContent = deps.toLocaleString();
+  document.getElementById('m-regs').textContent   = regs.toLocaleString();
+  document.getElementById('m-ftds').textContent   = ftds.toLocaleString();
+  document.getElementById('m-deps').textContent   = deps.toLocaleString();
   document.getElementById('m-rr').textContent = visits > 0 ? ((regs / visits) * 100).toFixed(1) + '%' : '—';
   document.getElementById('m-rf').textContent = visits > 0 ? ((ftds / visits) * 100).toFixed(1) + '%' : '—';
   const ftdPayout = recentData.filter(d => d.event_type === 'ftd').reduce((s, d) => s + (d.payout || 0), 0);
-  document.getElementById('m-ftds-sub').textContent = ftdPayout > 0 ? currency + ' ' + ftdPayout.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' earned' : 'first deposits';
+  document.getElementById('m-ftds-sub').textContent = ftdPayout > 0
+    ? currency + ' ' + ftdPayout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' earned'
+    : 'first deposits';
   renderBreakdown('ov-zone-regs',  recentData.filter(d => d.event_type === 'registration'), 'zone_id');
-  renderBreakdown('ov-zone-ftds',  recentData.filter(d => d.event_type === 'ftd'), 'zone_id');
-  renderBreakdown('ov-brand-ftds', recentData.filter(d => d.event_type === 'ftd'), 'brand');
-  renderBreakdown('camp-visits',   recentData.filter(d => d.event_type === 'visit'), 'campaign_id');
+  renderBreakdown('ov-zone-ftds',  recentData.filter(d => d.event_type === 'ftd'),          'zone_id');
+  renderBreakdown('ov-brand-ftds', recentData.filter(d => d.event_type === 'ftd'),          'brand');
+  renderBreakdown('camp-visits',   recentData.filter(d => d.event_type === 'visit'),        'campaign_id');
   renderBreakdown('camp-regs',     recentData.filter(d => d.event_type === 'registration'), 'campaign_id');
-  renderBreakdown('camp-ftds',     recentData.filter(d => d.event_type === 'ftd'), 'campaign_id');
-  renderBreakdown('lp-visits',     recentData.filter(d => d.event_type === 'visit'), 'landing_page');
+  renderBreakdown('camp-ftds',     recentData.filter(d => d.event_type === 'ftd'),          'campaign_id');
+  renderBreakdown('lp-visits',     recentData.filter(d => d.event_type === 'visit'),        'landing_page');
   renderBreakdown('lp-regs',       recentData.filter(d => d.event_type === 'registration'), 'landing_page');
-  renderBreakdown('lp-ftds',       recentData.filter(d => d.event_type === 'ftd'), 'landing_page');
-  renderBreakdown('zone-visits',   recentData.filter(d => d.event_type === 'visit'), 'zone_id');
+  renderBreakdown('lp-ftds',       recentData.filter(d => d.event_type === 'ftd'),          'landing_page');
+  renderBreakdown('zone-visits',   recentData.filter(d => d.event_type === 'visit'),        'zone_id');
   renderBreakdown('zone-regs',     recentData.filter(d => d.event_type === 'registration'), 'zone_id');
-  renderBreakdown('zone-ftds',     recentData.filter(d => d.event_type === 'ftd'), 'zone_id');
+  renderBreakdown('zone-ftds',     recentData.filter(d => d.event_type === 'ftd'),          'zone_id');
   renderEventLog(recentData.slice(0, 200));
 }
 
