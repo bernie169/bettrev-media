@@ -555,57 +555,58 @@ function selectBrand(slug, btn, silent) {
 
 // ── DATA ──
 async function loadData() {
-  let url = `/rest/v1/conversions?select=*&order=created_at.desc&limit=50000`;
-  if (currentBrand !== '__all__') url += `&brand=eq.${currentBrand}`;
-  if (currentFrom) url += `&created_at=gte.${currentFrom}`;
-  if (currentTo) url += `&created_at=lte.${currentTo}`;
-  const res = await sbFetch(url);
-  const data = await res.json();
-  render(Array.isArray(data) ? data : []);
+  const params = getDateParams(currentRange);
+  const brandFilter = currentBrand !== '__all__' ? '&brand=eq.' + currentBrand : '';
+  const dateGte = params.gte ? '&created_at=gte.' + params.gte : '';
+  const dateLte = params.lte ? '&created_at=lte.' + params.lte : '';
+  const filters = brandFilter + dateGte + dateLte;
+
+  async function getCount(eventType) {
+    const r = await sbFetch(
+      '/rest/v1/conversions?select=event_type' + filters + '&event_type=eq.' + eventType + '&limit=1',
+      { headers: { 'Prefer': 'count=exact' } }
+    );
+    const cr = r.headers.get('content-range');
+    if (cr) { const t = cr.split('/')[1]; return isNaN(t) ? 0 : parseInt(t); }
+    return 0;
+  }
+
+  const [visits, regs, ftds, deps, recentRes] = await Promise.all([
+    getCount('visit'),
+    getCount('registration'),
+    getCount('ftd'),
+    getCount('deposit'),
+    sbFetch('/rest/v1/conversions?select=*&order=created_at.desc' + filters + '&limit=200')
+  ]);
+
+  const recentData = await recentRes.json();
+  render(visits, regs, ftds, deps, Array.isArray(recentData) ? recentData : []);
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
-
-function render(data) {
-  const visits = data.filter(d => d.event_type === 'visit').length;
-  const regs   = data.filter(d => d.event_type === 'registration').length;
-  const ftds   = data.filter(d => d.event_type === 'ftd').length;
-  const deps   = data.filter(d => d.event_type === 'deposit').length;
-
-  // Payout — sum FTDs, show currency
-  const ftdData = data.filter(d => d.event_type === 'ftd');
-  const totalPayout = ftdData.reduce((s,d) => s + (d.payout||0), 0);
-  const currency = currentBrand === '__all__' ? '' : (brands.find(b=>b.slug===currentBrand)?.currency || 'ZAR');
-
+function render(visits, regs, ftds, deps, recentData) {
+  const brand = brands.find(b => b.slug === currentBrand);
+  const currency = brand ? (brand.currency || 'ZAR') : '';
   document.getElementById('m-visits').textContent = visits.toLocaleString();
-  document.getElementById('m-regs').textContent   = regs.toLocaleString();
-  document.getElementById('m-ftds').textContent   = ftds.toLocaleString();
-  document.getElementById('m-deps').textContent   = deps.toLocaleString();
-  document.getElementById('m-rr').textContent = visits > 0 ? ((regs/visits)*100).toFixed(1)+'%' : '—';
-  document.getElementById('m-rf').textContent = visits > 0 ? ((ftds/visits)*100).toFixed(1)+'%' : '—';
-  document.getElementById('m-ftds-sub').textContent = totalPayout > 0
-    ? `${currency} ${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} earned`
-    : 'first deposits';
-
-  // Overview
-  renderBreakdown('ov-zone-regs', data.filter(d=>d.event_type==='registration'), 'zone_id');
-  renderBreakdown('ov-zone-ftds', data.filter(d=>d.event_type==='ftd'), 'zone_id');
-  renderBreakdown('ov-brand-ftds', data.filter(d=>d.event_type==='ftd'), 'brand');
-
-  // Campaigns
-  renderBreakdown('camp-visits', data.filter(d=>d.event_type==='visit'), 'campaign_id');
-  renderBreakdown('camp-regs',   data.filter(d=>d.event_type==='registration'), 'campaign_id');
-  renderBreakdown('camp-ftds',   data.filter(d=>d.event_type==='ftd'), 'campaign_id');
-  renderBreakdown('lp-visits',   data.filter(d=>d.event_type==='visit'), 'landing_page');
-  renderBreakdown('lp-regs',     data.filter(d=>d.event_type==='registration'), 'landing_page');
-  renderBreakdown('lp-ftds',     data.filter(d=>d.event_type==='ftd'), 'landing_page');
-
-  // Zones
-  renderBreakdown('zone-visits', data.filter(d=>d.event_type==='visit'), 'zone_id');
-  renderBreakdown('zone-regs',   data.filter(d=>d.event_type==='registration'), 'zone_id');
-  renderBreakdown('zone-ftds',   data.filter(d=>d.event_type==='ftd'), 'zone_id');
-
-  // Event log
-  renderEventLog(data.slice(0,200));
+  document.getElementById('m-regs').textContent = regs.toLocaleString();
+  document.getElementById('m-ftds').textContent = ftds.toLocaleString();
+  document.getElementById('m-deps').textContent = deps.toLocaleString();
+  document.getElementById('m-rr').textContent = visits > 0 ? ((regs / visits) * 100).toFixed(1) + '%' : '—';
+  document.getElementById('m-rf').textContent = visits > 0 ? ((ftds / visits) * 100).toFixed(1) + '%' : '—';
+  const ftdPayout = recentData.filter(d => d.event_type === 'ftd').reduce((s, d) => s + (d.payout || 0), 0);
+  document.getElementById('m-ftds-sub').textContent = ftdPayout > 0 ? currency + ' ' + ftdPayout.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) + ' earned' : 'first deposits';
+  renderBreakdown('ov-zone-regs',  recentData.filter(d => d.event_type === 'registration'), 'zone_id');
+  renderBreakdown('ov-zone-ftds',  recentData.filter(d => d.event_type === 'ftd'), 'zone_id');
+  renderBreakdown('ov-brand-ftds', recentData.filter(d => d.event_type === 'ftd'), 'brand');
+  renderBreakdown('camp-visits',   recentData.filter(d => d.event_type === 'visit'), 'campaign_id');
+  renderBreakdown('camp-regs',     recentData.filter(d => d.event_type === 'registration'), 'campaign_id');
+  renderBreakdown('camp-ftds',     recentData.filter(d => d.event_type === 'ftd'), 'campaign_id');
+  renderBreakdown('lp-visits',     recentData.filter(d => d.event_type === 'visit'), 'landing_page');
+  renderBreakdown('lp-regs',       recentData.filter(d => d.event_type === 'registration'), 'landing_page');
+  renderBreakdown('lp-ftds',       recentData.filter(d => d.event_type === 'ftd'), 'landing_page');
+  renderBreakdown('zone-visits',   recentData.filter(d => d.event_type === 'visit'), 'zone_id');
+  renderBreakdown('zone-regs',     recentData.filter(d => d.event_type === 'registration'), 'zone_id');
+  renderBreakdown('zone-ftds',     recentData.filter(d => d.event_type === 'ftd'), 'zone_id');
+  renderEventLog(recentData.slice(0, 200));
 }
 
 function renderBreakdown(id, events, field) {
