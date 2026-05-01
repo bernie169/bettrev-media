@@ -561,14 +561,11 @@ async function loadData() {
   const dateLte = params.lte ? '&created_at=lte.' + params.lte : '';
   const filters = brandFilter + dateGte + dateLte;
 
+  // Use ?select=count to get server-side totals without row limits
   async function getCount(eventType) {
-    const r = await sbFetch(
-      '/rest/v1/conversions?select=event_type' + filters + '&event_type=eq.' + eventType + '&limit=1',
-      { headers: { 'Prefer': 'count=exact' } }
-    );
-    const cr = r.headers.get('content-range');
-    if (cr) { const t = cr.split('/')[1]; return isNaN(t) ? 0 : parseInt(t); }
-    return 0;
+    const r = await sbFetch('/rest/v1/conversions?select=count&event_type=eq.' + eventType + filters);
+    const j = await r.json();
+    return (Array.isArray(j) && j[0] && j[0].count != null) ? parseInt(j[0].count) : 0;
   }
 
   const [visits, regs, ftds, deps, recentRes] = await Promise.all([
@@ -583,6 +580,7 @@ async function loadData() {
   render(visits, regs, ftds, deps, Array.isArray(recentData) ? recentData : []);
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
+
 function render(visits, regs, ftds, deps, recentData) {
   const brand = brands.find(b => b.slug === currentBrand);
   const currency = brand ? (brand.currency || 'ZAR') : '';
