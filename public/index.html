@@ -634,7 +634,8 @@ function renderBreakdown(id, events, field) {
   if (!events.length) { el.innerHTML = '<div class="empty">No data yet</div>'; return; }
   const counts = {};
   const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  events.forEach(e => { const raw = e[field]; if (!raw || (field === 'zone_id' && uuidRe.test(String(raw)))) return; const k = String(raw); counts[k] = (counts[k] || 0) + 1; });
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  events.forEach(e => { const raw = e[field]; if (field === 'zone_id' && raw && uuidRe.test(String(raw))) return; const k = raw || '(none)'; counts[k] = (counts[k] || 0) + 1; });
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const max = sorted[0][1];
   el.innerHTML = sorted.map(([k,v]) => `
