@@ -464,7 +464,6 @@ const VALID_PASSWORD = 'Chutney1!';
 const COLORS = ['#e8ff47','#47ffb2','#7b7fff','#ff9f47','#ff6b47','#47d4ff','#ff47b2','#b2ff47','#ffffff'];
 
 let currentBrand = '__all__';
-let currentRange = 'today';
 let currentFrom = null;
 let currentTo = null;
 let brands = [];
@@ -555,77 +554,58 @@ function selectBrand(slug, btn, silent) {
 }
 
 // ── DATA ──
-function getDateParams(range) {
-  function sastMidnight(offsetDays) {
-    const now = new Date();
-    const sastNow = new Date(now.getTime() + 2 * 3600 * 1000);
-    const y = sastNow.getUTCFullYear(), mo = sastNow.getUTCMonth(), d = sastNow.getUTCDate();
-    return new Date(Date.UTC(y, mo, d + offsetDays) - 2 * 3600 * 1000).toISOString();
-  }
-  if (range === 'today')     return { gte: sastMidnight(0),   lte: sastMidnight(1) };
-  if (range === 'yesterday') return { gte: sastMidnight(-1),  lte: sastMidnight(0) };
-  if (range === '7d')        return { gte: sastMidnight(-6),  lte: sastMidnight(1) };
-  if (range === '30d')       return { gte: sastMidnight(-29), lte: sastMidnight(1) };
-  return {};
-}
 async function loadData() {
-  const params = getDateParams(currentRange);
-  const brandFilter = currentBrand !== '__all__' ? '&brand=eq.' + currentBrand : '';
-  const dateFilter = (params.gte ? '&created_at=gte.' + params.gte : '') + (params.lte ? '&created_at=lte.' + params.lte : '');
-
-  async function getCount(eventType) {
-    const r = await sbFetch(
-      '/rest/v1/conversions?select=*' + brandFilter + dateFilter + '&event_type=eq.' + eventType + '&limit=1',
-      { headers: { 'Prefer': 'count=exact' } }
-    );
-    const cr = r.headers.get('content-range');
-    if (!cr) return 0;
-    const parts = cr.split('/');
-    return parts[1] === '*' ? 0 : (parseInt(parts[1]) || 0);
-  }
-
-  const [visits, regs, ftds, deps] = await Promise.all([
-    getCount('visit'),
-    getCount('registration'),
-    getCount('ftd'),
-    getCount('deposit')
-  ]);
-
-  const sampleRes = await sbFetch(
-    '/rest/v1/conversions?select=*&order=created_at.desc&limit=500' + brandFilter + dateFilter
-  );
-  const sample = await sampleRes.json();
-  const recentData = Array.isArray(sample) ? sample : [];
-
-  render({ visits, regs, ftds, deps, recentData });
+  let url = `/rest/v1/conversions?select=*&order=created_at.desc&limit=50000`;
+  if (currentBrand !== '__all__') url += `&brand=eq.${currentBrand}`;
+  if (currentFrom) url += `&created_at=gte.${currentFrom}`;
+  if (currentTo) url += `&created_at=lte.${currentTo}`;
+  const res = await sbFetch(url);
+  const data = await res.json();
+  render(Array.isArray(data) ? data : []);
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
 
-function render({ visits, regs, ftds, deps, recentData }) {
-  const currency = currentBrand === '__all__' ? '' : ((brands.find(b => b.slug === currentBrand) || {}).currency || 'ZAR');
+function render(data) {
+  const visits = data.filter(d => d.event_type === 'visit').length;
+  const regs   = data.filter(d => d.event_type === 'registration').length;
+  const ftds   = data.filter(d => d.event_type === 'ftd').length;
+  const deps   = data.filter(d => d.event_type === 'deposit').length;
+
+  // Payout — sum FTDs, show currency
+  const ftdData = data.filter(d => d.event_type === 'ftd');
+  const totalPayout = ftdData.reduce((s,d) => s + (d.payout||0), 0);
+  const currency = currentBrand === '__all__' ? '' : (brands.find(b=>b.slug===currentBrand)?.currency || 'ZAR');
+
   document.getElementById('m-visits').textContent = visits.toLocaleString();
   document.getElementById('m-regs').textContent   = regs.toLocaleString();
   document.getElementById('m-ftds').textContent   = ftds.toLocaleString();
   document.getElementById('m-deps').textContent   = deps.toLocaleString();
-  document.getElementById('m-rr').textContent = visits > 0 ? ((regs / visits) * 100).toFixed(1) + '%' : '—';
-  document.getElementById('m-rf').textContent = visits > 0 ? ((ftds / visits) * 100).toFixed(1) + '%' : '—';
-  const ftdPayout = recentData.filter(d => d.event_type === 'ftd').reduce((s, d) => s + (d.payout || 0), 0);
-  document.getElementById('m-ftds-sub').textContent = ftdPayout > 0
-    ? currency + ' ' + ftdPayout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' earned'
+  document.getElementById('m-rr').textContent = visits > 0 ? ((regs/visits)*100).toFixed(1)+'%' : '—';
+  document.getElementById('m-rf').textContent = visits > 0 ? ((ftds/visits)*100).toFixed(1)+'%' : '—';
+  document.getElementById('m-ftds-sub').textContent = totalPayout > 0
+    ? `${currency} ${totalPayout.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} earned`
     : 'first deposits';
-  renderBreakdown('ov-zone-regs',  recentData.filter(d => d.event_type === 'registration'), 'zone_id');
-  renderBreakdown('ov-zone-ftds',  recentData.filter(d => d.event_type === 'ftd'),          'zone_id');
-  renderBreakdown('ov-brand-ftds', recentData.filter(d => d.event_type === 'ftd'),          'brand');
-  renderBreakdown('camp-visits',   recentData.filter(d => d.event_type === 'visit'),        'campaign_id');
-  renderBreakdown('camp-regs',     recentData.filter(d => d.event_type === 'registration'), 'campaign_id');
-  renderBreakdown('camp-ftds',     recentData.filter(d => d.event_type === 'ftd'),          'campaign_id');
-  renderBreakdown('lp-visits',     recentData.filter(d => d.event_type === 'visit'),        'landing_page');
-  renderBreakdown('lp-regs',       recentData.filter(d => d.event_type === 'registration'), 'landing_page');
-  renderBreakdown('lp-ftds',       recentData.filter(d => d.event_type === 'ftd'),          'landing_page');
-  renderBreakdown('zone-visits',   recentData.filter(d => d.event_type === 'visit'),        'zone_id');
-  renderBreakdown('zone-regs',     recentData.filter(d => d.event_type === 'registration'), 'zone_id');
-  renderBreakdown('zone-ftds',     recentData.filter(d => d.event_type === 'ftd'),          'zone_id');
-  renderEventLog(recentData.slice(0, 200));
+
+  // Overview
+  renderBreakdown('ov-zone-regs', data.filter(d=>d.event_type==='registration'), 'zone_id');
+  renderBreakdown('ov-zone-ftds', data.filter(d=>d.event_type==='ftd'), 'zone_id');
+  renderBreakdown('ov-brand-ftds', data.filter(d=>d.event_type==='ftd'), 'brand');
+
+  // Campaigns
+  renderBreakdown('camp-visits', data.filter(d=>d.event_type==='visit'), 'campaign_id');
+  renderBreakdown('camp-regs',   data.filter(d=>d.event_type==='registration'), 'campaign_id');
+  renderBreakdown('camp-ftds',   data.filter(d=>d.event_type==='ftd'), 'campaign_id');
+  renderBreakdown('lp-visits',   data.filter(d=>d.event_type==='visit'), 'landing_page');
+  renderBreakdown('lp-regs',     data.filter(d=>d.event_type==='registration'), 'landing_page');
+  renderBreakdown('lp-ftds',     data.filter(d=>d.event_type==='ftd'), 'landing_page');
+
+  // Zones
+  renderBreakdown('zone-visits', data.filter(d=>d.event_type==='visit'), 'zone_id');
+  renderBreakdown('zone-regs',   data.filter(d=>d.event_type==='registration'), 'zone_id');
+  renderBreakdown('zone-ftds',   data.filter(d=>d.event_type==='ftd'), 'zone_id');
+
+  // Event log
+  renderEventLog(data.slice(0,200));
 }
 
 function renderBreakdown(id, events, field) {
@@ -633,9 +613,7 @@ function renderBreakdown(id, events, field) {
   if (!el) return;
   if (!events.length) { el.innerHTML = '<div class="empty">No data yet</div>'; return; }
   const counts = {};
-  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  events.forEach(e => { const raw = e[field]; if (field === 'zone_id' && raw && uuidRe.test(String(raw))) return; const k = raw || '(none)'; counts[k] = (counts[k] || 0) + 1; });
+  events.forEach(e => { const k = e[field] || '(none)'; counts[k] = (counts[k]||0)+1; });
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const max = sorted[0][1];
   el.innerHTML = sorted.map(([k,v]) => `
@@ -727,7 +705,6 @@ function copyUrl(id) {
 
 // ── DATE RANGE ──
 function setRange(range, btn) {
-  currentRange = range;
   document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   // SAST = UTC+2. sastMidnight(0) = today midnight SAST in UTC
