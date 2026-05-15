@@ -1,7 +1,36 @@
 {
   "routes": [
-    { "src": "/api/visit", "dest": "/api/visit.js" },
-    { "src": "/api/postback", "dest": "/api/postback.js" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+    {
+      "src": "/api/visit",
+      "dest": "/api/visit.js"
+    },
+    {
+      "src": "/api/postback",
+      "dest": "/api/postback.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/((?!api/).*\\.html)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    }
   ]
 }
