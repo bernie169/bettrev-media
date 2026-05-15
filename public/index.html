@@ -193,7 +193,7 @@ tr:hover td{background:var(--surface);}
     <p>campaign tracker // v3</p>
     <input type="email" id="login-email" placeholder="email" autocomplete="username"/>
     <input type="password" id="login-password" placeholder="password" autocomplete="current-password"/>
-    <button onclick="doLogin()">Enter Ã¢ÂÂ</button>
+    <button onclick="doLogin()">Enter →</button>
     <div class="login-error" id="login-error">Invalid credentials</div>
   </div>
 </div>
@@ -215,7 +215,7 @@ tr:hover td{background:var(--surface);}
       <button class="add-brand-btn" onclick="openAddBrand()">+ Add brand</button>
     </div>
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" onclick="showTab('admin')">Ã¢ÂÂ Admin / Setup</button>
+      <button class="sidebar-btn" onclick="showTab('admin')">⚙ Admin / Setup</button>
       <button class="sidebar-btn" onclick="doLogout()">Logout</button>
     </div>
   </div>
@@ -227,8 +227,8 @@ tr:hover td{background:var(--surface);}
         <p id="topbar-sub">combined view</p>
       </div>
       <div class="topbar-right">
-        <span class="last-updated" id="last-updated">Ã¢ÂÂ</span>
-        <button class="icon-btn" onclick="loadData()">Ã¢ÂÂ» Refresh</button>
+        <span class="last-updated" id="last-updated">—</span>
+        <button class="icon-btn" onclick="loadData()">↻ Refresh</button>
       </div>
     </div>
 
@@ -240,7 +240,7 @@ tr:hover td{background:var(--surface);}
       <button class="date-btn" onclick="setRange('all',this)">All Time</button>
       <div class="date-inputs">
         <input type="date" id="date-from" onchange="setCustomRange()"/>
-        <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">Ã¢ÂÂ</span>
+        <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">→</span>
         <input type="date" id="date-to" onchange="setCustomRange()"/>
       </div>
     </div>
@@ -248,32 +248,32 @@ tr:hover td{background:var(--surface);}
     <div class="metrics">
       <div class="metric-card m-visits">
         <div class="metric-label">Visits</div>
-        <div class="metric-value" id="m-visits">Ã¢ÂÂ</div>
+        <div class="metric-value" id="m-visits">—</div>
         <div class="metric-sub">Mondiad traffic</div>
       </div>
       <div class="metric-card m-regs">
         <div class="metric-label">Registrations</div>
-        <div class="metric-value" id="m-regs">Ã¢ÂÂ</div>
+        <div class="metric-value" id="m-regs">—</div>
         <div class="metric-sub">new accounts</div>
       </div>
       <div class="metric-card m-ftds">
         <div class="metric-label">FTDs</div>
-        <div class="metric-value" id="m-ftds">Ã¢ÂÂ</div>
+        <div class="metric-value" id="m-ftds">—</div>
         <div class="metric-sub" id="m-ftds-sub">first deposits</div>
       </div>
       <div class="metric-card m-deps">
         <div class="metric-label">Deposits</div>
-        <div class="metric-value" id="m-deps">Ã¢ÂÂ</div>
+        <div class="metric-value" id="m-deps">—</div>
         <div class="metric-sub">all deposits</div>
       </div>
       <div class="metric-card m-rr">
-        <div class="metric-label">Visit Ã¢ÂÂ Reg</div>
-        <div class="metric-value" id="m-rr">Ã¢ÂÂ</div>
+        <div class="metric-label">Visit → Reg</div>
+        <div class="metric-value" id="m-rr">—</div>
         <div class="metric-sub">conversion rate</div>
       </div>
       <div class="metric-card m-rf">
-        <div class="metric-label">Visit Ã¢ÂÂ FTD</div>
-        <div class="metric-value" id="m-rf">Ã¢ÂÂ</div>
+        <div class="metric-label">Visit → FTD</div>
+        <div class="metric-value" id="m-rf">—</div>
         <div class="metric-sub">conversion rate</div>
       </div>
     </div>
@@ -361,7 +361,7 @@ tr:hover td{background:var(--surface);}
     <div class="panel" id="panel-admin">
 
       <div class="alert" style="margin-bottom:28px">
-        <strong>BeMob destination URL Ã¢ÂÂ use this instead of your raw Easybet link</strong><br>
+        <strong>BeMob destination URL — use this instead of your raw Easybet link</strong><br>
         Replace your BeMob campaign destination URL with the visit tracker URL below (per brand/campaign).
         This records every visit AND passes the click ID to Easybet. See Setup Guide below.
       </div>
@@ -373,20 +373,20 @@ tr:hover td{background:var(--surface);}
           <button class="add-brand-btn" style="margin-top:16px;width:100%;" onclick="openAddBrand()">+ Add new brand</button>
         </div>
         <div class="admin-card">
-          <h3>Brand Postback URLs Ã¢ÂÂ send to affiliate team</h3>
+          <h3>Brand Postback URLs — send to affiliate team</h3>
           <div id="admin-postbacks"><div class="empty">No brands yet</div></div>
         </div>
       </div>
 
       <div class="admin-card" style="margin-bottom:28px;">
-        <h3>Setup Guide Ã¢ÂÂ how to wire everything up</h3>
+        <h3>Setup Guide — how to wire everything up</h3>
         <div style="margin-top:16px;">
 
           <div class="setup-step">
             <div class="step-num">1</div>
             <div class="step-body">
               <h4>Replace your BeMob destination URL</h4>
-              <p>Go to BeMob Ã¢ÂÂ Edit Campaign Ã¢ÂÂ Destination URL. Replace it with the <strong>Visit Tracker URL</strong> shown above for your brand. This single URL records the visit AND forwards to Easybet with the click ID attached. The <code>lp=</code> value should be changed per campaign to identify your landing page variant (e.g. <code>lp=spinwheel</code> or <code>lp=scratchcard</code>).</p>
+              <p>Go to BeMob → Edit Campaign → Destination URL. Replace it with the <strong>Visit Tracker URL</strong> shown above for your brand. This single URL records the visit AND forwards to Easybet with the click ID attached. The <code>lp=</code> value should be changed per campaign to identify your landing page variant (e.g. <code>lp=spinwheel</code> or <code>lp=scratchcard</code>).</p>
             </div>
           </div>
 
@@ -402,7 +402,7 @@ tr:hover td{background:var(--surface);}
             <div class="step-num">3</div>
             <div class="step-body">
               <h4>Mondiad dual-fire is automatic</h4>
-              <p>When an FTD postback is received, this tracker automatically fires back to Mondiad at <code>postback.pbmnd.com</code> with your uid and the click ID. No BeMob involvement needed for this step Ã¢ÂÂ it's built in.</p>
+              <p>When an FTD postback is received, this tracker automatically fires back to Mondiad at <code>postback.pbmnd.com</code> with your uid and the click ID. No BeMob involvement needed for this step — it's built in.</p>
             </div>
           </div>
 
@@ -410,7 +410,7 @@ tr:hover td{background:var(--surface);}
             <div class="step-num">4</div>
             <div class="step-body">
               <h4>Test a conversion</h4>
-              <p>Click through your BeMob campaign URL manually (use real URL, not test URL). Copy the click ID from BeMob Ã¢ÂÂ Live Visits. Go to Mondiad Ã¢ÂÂ Conversion Tracking Ã¢ÂÂ Test, paste that click ID. You should see a visit appear here immediately, and a test FTD appear once Mondiad fires back.</p>
+              <p>Click through your BeMob campaign URL manually (use real URL, not test URL). Copy the click ID from BeMob → Live Visits. Go to Mondiad → Conversion Tracking → Test, paste that click ID. You should see a visit appear here immediately, and a test FTD appear once Mondiad fires back.</p>
             </div>
           </div>
 
@@ -436,16 +436,16 @@ tr:hover td{background:var(--surface);}
     <p>Each brand gets its own colour-coded tracking, postback URLs and reports.</p>
     <label>Brand Name</label>
     <input type="text" id="brand-name" placeholder="e.g. Hollywoodbets" oninput="autoSlug()"/>
-    <label>Slug (used in postback URL Ã¢ÂÂ no spaces)</label>
+    <label>Slug (used in postback URL — no spaces)</label>
     <input type="text" id="brand-slug" placeholder="e.g. hollywoodbets"/>
     <label>Currency</label>
     <select id="brand-currency">
-      <option value="ZAR">ZAR Ã¢ÂÂ South African Rand</option>
-      <option value="USD">USD Ã¢ÂÂ US Dollar</option>
-      <option value="EUR">EUR Ã¢ÂÂ Euro</option>
-      <option value="GBP">GBP Ã¢ÂÂ British Pound</option>
-      <option value="NGN">NGN Ã¢ÂÂ Nigerian Naira</option>
-      <option value="KES">KES Ã¢ÂÂ Kenyan Shilling</option>
+      <option value="ZAR">ZAR — South African Rand</option>
+      <option value="USD">USD — US Dollar</option>
+      <option value="EUR">EUR — Euro</option>
+      <option value="GBP">GBP — British Pound</option>
+      <option value="NGN">NGN — Nigerian Naira</option>
+      <option value="KES">KES — Kenyan Shilling</option>
     </select>
     <label>Colour</label>
     <div class="color-row" id="color-row"></div>
