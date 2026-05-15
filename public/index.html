@@ -550,7 +550,7 @@ async function go(gte,lte){
   async function cnt(ev){var r=await sb('/rest/v1/conversions?select=*'+bf+df+'&event_type=eq.'+ev+'&limit=1',{headers:{'Prefer':'count=exact'}});var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);}
   var res=await Promise.all([cnt('visit'),cnt('registration'),cnt('ftd'),cnt('deposit')]);
   var visits=res[0],regs=res[1],ftds=res[2],deps=res[3];
-  var sr=await sb('/rest/v1/conversions?select=*&order=created_at.desc&limit=20000'+bf+df);
+  var sr=await fetch(SB_URL+'/rest/v1/conversions?select=event_type,zone_id,campaign_id,landing_page,brand,click_id,created_at,payout,currency,country&order=created_at.desc&limit=20000'+bf+df,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Range-Unit':'items','Range':'0-19999'}});
   var rd=await sr.json(),rows=Array.isArray(rd)?rd:[];
   render({visits:visits,regs:regs,ftds:ftds,deps:deps,rows:rows});
   document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString();
