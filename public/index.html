@@ -249,6 +249,10 @@ tr:hover td{background:var(--zebra);}
 .btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px 20px;font:500 13px 'Hanken Grotesk';cursor:pointer;border-radius:11px;}
 .btn-save{background:var(--fill);color:var(--ink);border:none;padding:10px 20px;font:700 13px 'Hanken Grotesk';cursor:pointer;border-radius:11px;box-shadow:0 1px 2px rgba(20,20,15,.08);}
 
+
+/* NETWORK FILTER */
+.network-select{background:var(--card);border:1px solid var(--border);color:var(--ink2);padding:9px 32px 9px 14px;font:500 12.5px 'Hanken Grotesk';outline:none;cursor:pointer;border-radius:10px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239a9a92'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+.network-select:focus{border-color:var(--accent);}
 @media(max-width:1200px){.metrics{grid-template-columns:repeat(3,1fr);}.breakdown-grid{grid-template-columns:1fr 1fr;}.breakdown-grid-2{grid-template-columns:1fr;}.admin-grid{grid-template-columns:1fr;}.seg-grid{grid-template-columns:repeat(2,1fr);}.net-compare-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -309,6 +313,12 @@ tr:hover td{background:var(--zebra);}
           <span style="color:#c2c2b8;font-family:'IBM Plex Mono';font-size:12px">→</span>
           <input type="date" id="date-to" onchange="setCustomRange()"/>
         </div>
+      </div>
+        <select class="network-select" id="network-filter" onchange="loadData()">
+          <option value="__all__">All Networks</option>
+          <option value="mondiad">Mondiad</option>
+          <option value="propeller">Propeller Ads</option>
+        </select>
       </div>
     </div>
 
@@ -529,7 +539,7 @@ function doLogout(){sessionStorage.removeItem('auth');document.getElementById('l
   }
 })();
 
-async function init(b){await loadBrands();selectBrand(b,null,true);setRange('today',document.querySelector('.date-btn'));if(timer)clearInterval(timer);timer=setInterval(function(){if(currentRange==='today')loadData();},60000);}
+async function init(b){await loadBrands();populateNetworks();selectBrand(b,null,true);setRange('today',document.querySelector('.date-btn'));if(timer)clearInterval(timer);timer=setInterval(function(){if(currentRange==='today')loadData();},60000);}
 
 async function loadBrands(){const r=await sb('/rest/v1/brands?select=*&order=created_at.asc');brands=await r.json();rSidebar();rAdmin();}
 
@@ -564,6 +574,7 @@ function selectBrand(slug,btn,silent){
   rPostbacks();if(!silent)loadData();
 }
 
+function getNetworkFilter(){var s=document.getElementById("network-filter");return s?s.value:"__all__";}
 function setRange(r,btn){currentRange=r;document.querySelectorAll('.date-btn').forEach(function(b){b.classList.remove('active');});if(btn)btn.classList.add('active');loadData();}
 
 function setCustomRange(){var f=document.getElementById('date-from').value,t=document.getElementById('date-to').value;if(!f&&!t)return;currentRange='custom';document.querySelectorAll('.date-btn').forEach(function(b){b.classList.remove('active');});go(f?new Date(f).toISOString():null,t?new Date(new Date(t).getTime()+86400000).toISOString():null);}
@@ -572,12 +583,14 @@ async function loadData(){var p=dp(currentRange);await go(p.gte||null,p.lte||nul
 
 async function go(gte,lte){
   var brand=currentBrand;
+  var network=getNetworkFilter();
   var bf=brand!=='__all__'?'&brand=eq.'+brand:'';
+  var nf=network!=='__all__'?'&network=eq.'+network:'';
   var df=(gte?'&created_at=gte.'+gte:'')+(lte?'&created_at=lte.'+lte:'');
-  async function cnt(ev){var r=await sb('/rest/v1/conversions?select=*'+bf+df+'&event_type=eq.'+ev+'&limit=1',{headers:{'Prefer':'count=exact'}});var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);}
+  async function cnt(ev){var r=await sb('/rest/v1/conversions?select=*'+bf+nf+df+'&event_type=eq.'+ev+'&limit=1',{headers:{'Prefer':'count=exact'}});var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);}
   var res=await Promise.all([cnt('visit'),cnt('registration'),cnt('ftd'),cnt('deposit')]);
   var visits=res[0],regs=res[1],ftds=res[2],deps=res[3];
-  var sr=await fetch(SB_URL+'/rest/v1/conversions?select=event_type,zone_id,campaign_id,landing_page,brand,click_id,created_at,payout,currency,country,network&order=created_at.desc&limit=20000'+bf+df,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Range-Unit':'items','Range':'0-19999'}});
+  var sr=await fetch(SB_URL+'/rest/v1/conversions?select=event_type,zone_id,campaign_id,landing_page,brand,click_id,created_at,payout,currency,country,network&order=created_at.desc&limit=20000'+bf+nf+df,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Range-Unit':'items','Range':'0-19999'}});
   var rd=await sr.json(),rows=Array.isArray(rd)?rd:[];
   var bk=await Promise.all([
     rpcBreakdown('get_breakdown_by_zone',brand,'visit',gte,lte),
@@ -945,6 +958,27 @@ function bdNetwork(id,events){
     html+='<div class="breakdown-row"><span class="breakdown-key"><span class="net-badge '+k+'">'+k+'</span></span><span class="breakdown-val">'+v.toLocaleString()+'</span></div><div class="bar-track" style="height:5px;margin-bottom:8px"><div class="bar-fill" style="width:'+Math.round(v/max*100)+'%;background:'+color+'"></div></div>';
   });
   el.innerHTML=html;
+}
+
+
+// Populate network dropdown dynamically from actual data
+async function populateNetworks(){
+  var sel=document.getElementById('network-filter');if(!sel)return;
+  var r=await sb('/rest/v1/conversions?select=network&limit=10000');
+  var rows=await r.json();
+  if(!Array.isArray(rows))return;
+  var nets=new Set();
+  rows.forEach(function(r){if(r.network)nets.add(r.network);});
+  // Rebuild options preserving current selection
+  var current=sel.value;
+  sel.innerHTML='<option value="__all__">All Networks</option>';
+  var labels={'mondiad':'Mondiad','propeller':'Propeller Ads'};
+  Array.from(nets).sort().forEach(function(n){
+    var opt=document.createElement('option');
+    opt.value=n;opt.textContent=labels[n]||n;
+    sel.appendChild(opt);
+  });
+  sel.value=current;
 }
 
 async function sb(path,opts){opts=opts||{};return fetch(SB_URL+path,Object.assign({},opts,{headers:Object.assign({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},opts.headers||{})}));}
