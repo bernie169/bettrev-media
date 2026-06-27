@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BetTrev Tracker</title>
 <style>
-@import url('https://fonts.googleapis.com/cs2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
 
 :root {
   --bg:#0a0a0a; --surface:#111; --surface2:#181818;
@@ -90,11 +90,10 @@ input,button,select{font-family:inherit;}
 .m-rr .metric-value{color:var(--reg);font-size:24px;}
 .m-rf .metric-value{color:var(--ftd);font-size:24px;}
 .metric-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;}
-.metric-currency{font-size:10px;font-weight:400;color:var(--muted);margin-left:4px;}
 
 /* TABS */
-.tabs{padding:0 32px;display:flex;border-bottom:1px solid var(--border);}
-.tab{padding:12px 20px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;}
+.tabs{padding:0 32px;display:flex;border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:12px 20px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
 .tab:hover{color:var(--text);}
 .tab.active{color:var(--brand-color);border-bottom-color:var(--brand-color);}
 
@@ -177,10 +176,63 @@ tr:hover td{background:var(--surface);}
 .step-body p{font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;line-height:1.7;}
 .step-body code{color:var(--brand-color);font-size:11px;}
 
-@media(max-width:1100px){
+/* SEGMENTS */
+.seg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.seg-card{background:var(--surface);border:1px solid var(--border);padding:18px;position:relative;overflow:hidden;}
+.seg-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--brand-color);}
+.seg-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.seg-value{font-size:26px;font-weight:800;letter-spacing:-1px;color:var(--accent);}
+.seg-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
+.seg-bar-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #141414;font-family:'DM Mono',monospace;font-size:11px;}
+.seg-bar-row:last-child{border-bottom:none;}
+.seg-bar-label{color:var(--muted2);width:100px;flex-shrink:0;}
+.seg-bar-track{flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden;}
+.seg-bar-fill{height:100%;border-radius:2px;}
+.seg-bar-val{color:var(--text);width:50px;text-align:right;flex-shrink:0;}
+.seg-bar-pct{color:var(--muted);width:40px;text-align:right;flex-shrink:0;font-size:10px;}
+
+/* NETWORK COMPARISON */
+.net-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.net-card{background:var(--surface);border:1px solid var(--border);padding:20px;}
+.net-card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.net-dot{width:10px;height:10px;border-radius:50%;}
+.net-card-title{font-size:13px;font-weight:700;}
+.net-stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #141414;font-family:'DM Mono',monospace;font-size:12px;}
+.net-stat-row:last-child{border-bottom:none;}
+.net-stat-label{color:var(--muted2);}
+.net-stat-val{color:var(--text);font-weight:500;}
+.net-winner{color:var(--accent);font-size:9px;margin-left:6px;}
+
+/* CLICK LOOKUP */
+.lookup-box{background:var(--surface);border:1px solid var(--border);padding:24px;margin-bottom:20px;}
+.lookup-input-row{display:flex;gap:10px;margin-bottom:20px;}
+.lookup-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:13px;outline:none;}
+.lookup-input:focus{border-color:var(--accent);}
+.lookup-btn{background:var(--accent);color:#000;border:none;padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
+.journey-step{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #141414;}
+.journey-step:last-child{border-bottom:none;}
+.journey-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.journey-event{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;width:80px;}
+.journey-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);width:140px;}
+.journey-detail{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);flex:1;}
+.journey-payout{font-family:'DM Mono',monospace;font-size:11px;color:var(--ftd);}
+
+/* USERS */
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #141414;}
+.user-row:last-child{border-bottom:none;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.user-info{flex:1;}
+.user-name{font-size:13px;font-weight:700;}
+.user-email{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;}
+.user-role{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border2);color:var(--muted);}
+.user-role.admin{border-color:var(--accent);color:var(--accent);}
+
+@media(max-width:1200px){
   .metrics{grid-template-columns:repeat(3,1fr);}
   .breakdown-grid{grid-template-columns:1fr 1fr;}
   .admin-grid{grid-template-columns:1fr;}
+  .seg-grid{grid-template-columns:repeat(2,1fr);}
+  .net-compare-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -283,7 +335,10 @@ tr:hover td{background:var(--surface);}
       <button class="tab" id="tab-btn-campaigns" onclick="showTab('campaigns')">Campaigns</button>
       <button class="tab" id="tab-btn-zones" onclick="showTab('zones')">Zones</button>
       <button class="tab" id="tab-btn-events" onclick="showTab('events')">Event Log</button>
-        <button class="tab" id="tab-btn-audit" onclick="showTab('audit');loadAudit();">Audit</button>
+      <button class="tab" id="tab-btn-audit" onclick="showTab('audit');loadAudit();">Audit</button>
+      <button class="tab" id="tab-btn-networks" onclick="showTab('networks');loadNetworks();">Networks</button>
+      <button class="tab" id="tab-btn-segments" onclick="showTab('segments');loadSegments();">Segments</button>
+      <button class="tab" id="tab-btn-lookup" onclick="showTab('lookup')">Click Lookup</button>
       <button class="tab" id="tab-btn-admin" onclick="showTab('admin')">Admin / Setup</button>
     </div>
 
@@ -308,48 +363,21 @@ tr:hover td{background:var(--surface);}
     <!-- CAMPAIGNS -->
     <div class="panel" id="panel-campaigns">
       <div class="breakdown-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="breakdown-card">
-          <h3>Visits by Campaign</h3>
-          <div id="camp-visits"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>Registrations by Campaign</h3>
-          <div id="camp-regs"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>FTDs by Campaign</h3>
-          <div id="camp-ftds"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>Visits by Landing Page</h3>
-          <div id="lp-visits"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>Registrations by Landing Page</h3>
-          <div id="lp-regs"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>FTDs by Landing Page</h3>
-          <div id="lp-ftds"><div class="empty">No data yet</div></div>
-        </div>
+        <div class="breakdown-card"><h3>Visits by Campaign</h3><div id="camp-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>Registrations by Campaign</h3><div id="camp-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>FTDs by Campaign</h3><div id="camp-ftds"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>Visits by Landing Page</h3><div id="lp-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>Registrations by Landing Page</h3><div id="lp-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>FTDs by Landing Page</h3><div id="lp-ftds"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
     <!-- ZONES -->
     <div class="panel" id="panel-zones">
       <div class="breakdown-grid">
-        <div class="breakdown-card">
-          <h3>Visits by Zone</h3>
-          <div id="zone-visits"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>Registrations by Zone</h3>
-          <div id="zone-regs"><div class="empty">No data yet</div></div>
-        </div>
-        <div class="breakdown-card">
-          <h3>FTDs by Zone</h3>
-          <div id="zone-ftds"><div class="empty">No data yet</div></div>
-        </div>
+        <div class="breakdown-card"><h3>Visits by Zone</h3><div id="zone-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>Registrations by Zone</h3><div id="zone-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>FTDs by Zone</h3><div id="zone-ftds"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
@@ -364,6 +392,53 @@ tr:hover td{background:var(--surface);}
         <h2 style="margin:0 0 8px">Stats Audit</h2>
         <p style="color:var(--muted);margin:0 0 20px">Compares dashboard totals against fresh Supabase count=exact queries. Refresh by clicking the Audit tab.</p>
         <div id="audit-table"><div class="loading">loading audit...</div></div>
+      </div>
+    </div>
+
+    <!-- NETWORKS -->
+    <div class="panel" id="panel-networks">
+      <div style="margin-bottom:20px;">
+        <h2 style="margin:0 0 4px">Network Performance</h2>
+        <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Side-by-side comparison of Mondiad vs Propeller Ads for the selected date range.</p>
+      </div>
+      <div class="net-compare-grid" id="net-compare"><div class="loading">loading...</div></div>
+      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="breakdown-card"><h3>Visits by Network</h3><div id="net-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>Registrations by Network</h3><div id="net-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>FTDs by Network</h3><div id="net-ftds"><div class="empty">No data yet</div></div></div>
+      </div>
+    </div>
+
+    <!-- SEGMENTS -->
+    <div class="panel" id="panel-segments">
+      <div style="margin-bottom:20px;">
+        <h2 style="margin:0 0 4px">Retargeting Segments</h2>
+        <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Audience pools built from your Easybet GTM pixel. Updated in real time.</p>
+      </div>
+      <div class="seg-grid" id="seg-kpis"><div class="loading">loading...</div></div>
+      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr 1fr;">
+        <div class="breakdown-card"><h3>By Category</h3><div id="seg-category"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>By Source</h3><div id="seg-source"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>By Device</h3><div id="seg-device"><div class="empty">No data yet</div></div></div>
+      </div>
+      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="breakdown-card"><h3>Guest vs Registered Split</h3><div id="seg-segment"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><h3>Multi-Visit vs New Visitors</h3><div id="seg-multivisit"><div class="empty">No data yet</div></div></div>
+      </div>
+    </div>
+
+    <!-- CLICK LOOKUP -->
+    <div class="panel" id="panel-lookup">
+      <div style="margin-bottom:20px;">
+        <h2 style="margin:0 0 4px">Click ID Lookup</h2>
+        <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Paste any click ID to see the full visitor journey from visit through to FTD.</p>
+      </div>
+      <div class="lookup-box">
+        <div class="lookup-input-row">
+          <input class="lookup-input" id="lookup-input" placeholder="Paste click ID here..." onkeydown="if(event.key==='Enter')doLookup()"/>
+          <button class="lookup-btn" onclick="doLookup()">Lookup →</button>
+        </div>
+        <div id="lookup-result"><div class="empty">Enter a click ID above to trace its journey</div></div>
       </div>
     </div>
 
@@ -388,18 +463,33 @@ tr:hover td{background:var(--surface);}
         </div>
       </div>
 
+      <!-- USERS SECTION -->
+      <div class="admin-grid" style="margin-bottom:28px;">
+        <div class="admin-card">
+          <h3>Dashboard Users</h3>
+          <div id="admin-users-list"><div class="loading">loading...</div></div>
+          <button class="add-brand-btn" style="margin-top:16px;width:100%;" onclick="openAddUser()">+ Add user</button>
+        </div>
+        <div class="admin-card">
+          <h3>User Access Info</h3>
+          <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);line-height:1.8;">
+            Admin users can add/remove brands, users and access all settings.<br><br>
+            Viewer users can see all data but cannot make changes.<br><br>
+            Share login credentials securely — passwords are stored as plain text so keep them simple and dashboard-specific.
+          </p>
+        </div>
+      </div>
+
       <div class="admin-card" style="margin-bottom:28px;">
         <h3>Setup Guide — how to wire everything up</h3>
         <div style="margin-top:16px;">
-
           <div class="setup-step">
             <div class="step-num">1</div>
             <div class="step-body">
-              <h4>Replace your BeMob destination URL</h4>
-              <p>Go to BeMob → Edit Campaign → Destination URL. Replace it with the <strong>Visit Tracker URL</strong> shown above for your brand. This single URL records the visit AND forwards to Easybet with the click ID attached. The <code>lp=</code> value should be changed per campaign to identify your landing page variant (e.g. <code>lp=spinwheel</code> or <code>lp=scratchcard</code>).</p>
+              <h4>Propeller Ads Campaign URL</h4>
+              <p>Use this as your Propeller Ads destination URL:<br><code>https://bettrev-media.vercel.app/api/visit?brand=easybet&cid={SUBID}&s1={ZONEID}&campaign_id={CAMPAIGN_ID}&network=propeller&dest=https://ebpartners.click/o/lWk0jB?lpage=_HWky_</code></p>
             </div>
           </div>
-
           <div class="setup-step">
             <div class="step-num">2</div>
             <div class="step-body">
@@ -407,37 +497,25 @@ tr:hover td{background:var(--surface);}
               <p>Copy the Registration, FTD and Deposit postback URLs from the panel above and send them to your Easybet affiliate contact. They plug these into their system. When a player converts, Easybet fires back to your tracker automatically.</p>
             </div>
           </div>
-
           <div class="setup-step">
             <div class="step-num">3</div>
             <div class="step-body">
-              <h4>Mondiad dual-fire is automatic</h4>
-              <p>When an FTD postback is received, this tracker automatically fires back to Mondiad at <code>postback.pbmnd.com</code> with your uid and the click ID. No BeMob involvement needed for this step — it's built in.</p>
+              <h4>Network postbacks are automatic</h4>
+              <p>When an FTD postback is received, this tracker detects whether the click came from Mondiad or Propeller Ads and fires back to the correct network automatically.</p>
             </div>
           </div>
-
           <div class="setup-step">
             <div class="step-num">4</div>
             <div class="step-body">
-              <h4>Test a conversion</h4>
-              <p>Click through your BeMob campaign URL manually (use real URL, not test URL). Copy the click ID from BeMob → Live Visits. Go to Mondiad → Conversion Tracking → Test, paste that click ID. You should see a visit appear here immediately, and a test FTD appear once Mondiad fires back.</p>
-            </div>
-          </div>
-
-          <div class="setup-step">
-            <div class="step-num">5</div>
-            <div class="step-body">
               <h4>Adding a new brand</h4>
-              <p>Click <strong>+ Add brand</strong> in the sidebar. Fill in name, slug (e.g. <code>hollywoodbets</code>), currency (ZAR, USD, EUR), pick a colour. Postback URLs are generated instantly. Send them to the new brand's affiliate team.</p>
+              <p>Click <strong>+ Add brand</strong> in the sidebar. Fill in name, slug (e.g. <code>hollywoodbets</code>), currency (ZAR, USD, EUR), pick a colour. Postback URLs are generated instantly.</p>
             </div>
           </div>
-
         </div>
       </div>
-
     </div>
-  </div><!-- /main -->
-</div><!-- /app -->
+  </div>
+</div>
 
 <!-- ADD BRAND MODAL -->
 <div class="modal-overlay" id="brand-modal">
@@ -466,31 +544,75 @@ tr:hover td{background:var(--surface);}
   </div>
 </div>
 
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <h2>Add User</h2>
+    <p>Add a team member who can access this dashboard.</p>
+    <label>Full Name</label>
+    <input type="text" id="user-name" placeholder="e.g. John Smith"/>
+    <label>Email</label>
+    <input type="email" id="user-email" placeholder="e.g. john@example.com"/>
+    <label>Password</label>
+    <input type="text" id="user-password" placeholder="Set a simple dashboard password"/>
+    <label>Role</label>
+    <select id="user-role">
+      <option value="viewer">Viewer — can see all data, no changes</option>
+      <option value="admin">Admin — full access including settings</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeUserModal()">Cancel</button>
+      <button class="btn-save" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SB_URL='https://gpzovlgzuloevxvutenv.supabase.co';
 const SB_KEY='sb_publishable_V0dGs45AQYNhQ9J6dXhJUA_puEO-sMO';
-const VALID_EMAIL='tsbernberg@gmail.com';
-const VALID_PW='Chutney1!';
 const COLORS=['#e8ff47','#47ffb2','#7b7fff','#ff9f47','#ff6b47','#47d4ff','#ff47b2','#b2ff47','#ffffff'];
 const UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let currentBrand='__all__',currentRange='today',brands=[],selColor=COLORS[0],timer=null;
+let currentUser=null;
 
 function sm(n){const t=new Date(),s=new Date(t.getTime()+7200000);return new Date(Date.UTC(s.getUTCFullYear(),s.getUTCMonth(),s.getUTCDate()+n)-7200000).toISOString();}
 function dp(r){if(r==='today')return{gte:sm(0),lte:sm(1)};if(r==='yesterday')return{gte:sm(-1),lte:sm(0)};if(r==='7d')return{gte:sm(-6),lte:sm(1)};if(r==='30d')return{gte:sm(-29),lte:sm(1)};return{};}
 
-function doLogin(){
+// ===== LOGIN (updated to check dashboard_users table) =====
+async function doLogin(){
   const e=document.getElementById('login-email').value.trim();
   const p=document.getElementById('login-password').value;
-  if(e===VALID_EMAIL&&p===VALID_PW){
+  // Check against dashboard_users table
+  const r=await fetch(SB_URL+'/rest/v1/dashboard_users?email=eq.'+encodeURIComponent(e)+'&password=eq.'+encodeURIComponent(p)+'&active=eq.true&select=*&limit=1',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+  const users=await r.json();
+  if(users&&users.length>0){
+    currentUser=users[0];
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='block';
-    sessionStorage.setItem('auth','1');
+    sessionStorage.setItem('auth',JSON.stringify({email:e,pw:p}));
     init(sessionStorage.getItem('lastBrand')||'__all__');
   }else{document.getElementById('login-error').style.display='block';}
 }
 document.getElementById('login-password').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
-function doLogout(){sessionStorage.removeItem('auth');document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';if(timer)clearInterval(timer);}
-if(sessionStorage.getItem('auth')){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';init(sessionStorage.getItem('lastBrand')||'__all__');}
+function doLogout(){sessionStorage.removeItem('auth');document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';if(timer)clearInterval(timer);currentUser=null;}
+
+// Auto-login from session
+(async function(){
+  const saved=sessionStorage.getItem('auth');
+  if(saved){
+    try{
+      const {email,pw}=JSON.parse(saved);
+      const r=await fetch(SB_URL+'/rest/v1/dashboard_users?email=eq.'+encodeURIComponent(email)+'&password=eq.'+encodeURIComponent(pw)+'&active=eq.true&select=*&limit=1',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+      const users=await r.json();
+      if(users&&users.length>0){
+        currentUser=users[0];
+        document.getElementById('login-screen').style.display='none';
+        document.getElementById('app').style.display='block';
+        init(sessionStorage.getItem('lastBrand')||'__all__');
+      }
+    }catch(e){}
+  }
+})();
 
 async function init(b){await loadBrands();selectBrand(b,null,true);setRange('today',document.querySelector('.date-btn'));if(timer)clearInterval(timer);timer=setInterval(function(){if(currentRange==='today')loadData();},60000);}
 
@@ -498,31 +620,20 @@ async function loadBrands(){const r=await sb('/rest/v1/brands?select=*&order=cre
 
 function rSidebar(){
   var html='';
-  for(var i=0;i<brands.length;i++){
-    var b=brands[i];
-    html+='<button class="brand-btn" id="brand-btn-'+b.slug+'" data-slug="'+b.slug+'"><div class="brand-dot" style="background:'+b.color+'"></div>'+b.name+'</button>';
-  }
+  for(var i=0;i<brands.length;i++){var b=brands[i];html+='<button class="brand-btn" id="brand-btn-'+b.slug+'" data-slug="'+b.slug+'"><div class="brand-dot" style="background:'+b.color+'"></div>'+b.name+'</button>';}
   document.getElementById('brand-list').innerHTML=html;
-  document.getElementById('brand-list').addEventListener('click',function(e){
-    var btn=e.target.closest('.brand-btn');
-    if(btn)selectBrand(btn.dataset.slug,btn);
-  });
+  document.getElementById('brand-list').addEventListener('click',function(e){var btn=e.target.closest('.brand-btn');if(btn)selectBrand(btn.dataset.slug,btn);});
 }
 
 function rAdmin(){
   var el=document.getElementById('admin-brand-list');
   if(!brands.length){el.innerHTML='<div class="empty">No brands yet</div>';return;}
   var html='';
-  for(var i=0;i<brands.length;i++){
-    var b=brands[i];
-    html+='<div class="brand-admin-row"><div class="brand-admin-dot" style="background:'+b.color+'"></div><div class="brand-admin-info"><div class="brand-admin-name">'+b.name+'</div><div class="brand-admin-meta">'+b.slug+' \u00b7 '+(b.currency||'ZAR')+'</div></div><button class="del-btn" data-id="'+b.id+'" data-slug="'+b.slug+'" data-name="'+b.name+'">Delete</button></div>';
-  }
+  for(var i=0;i<brands.length;i++){var b=brands[i];html+='<div class="brand-admin-row"><div class="brand-admin-dot" style="background:'+b.color+'"></div><div class="brand-admin-info"><div class="brand-admin-name">'+b.name+'</div><div class="brand-admin-meta">'+b.slug+' \u00b7 '+(b.currency||'ZAR')+'</div></div><button class="del-btn" data-id="'+b.id+'" data-slug="'+b.slug+'" data-name="'+b.name+'">Delete</button></div>';}
   el.innerHTML=html;
-  el.addEventListener('click',function(e){
-    var btn=e.target.closest('.del-btn');
-    if(btn)deleteBrand(btn.dataset.id,btn.dataset.slug,btn.dataset.name);
-  });
+  el.addEventListener('click',function(e){var btn=e.target.closest('.del-btn');if(btn)deleteBrand(btn.dataset.id,btn.dataset.slug,btn.dataset.name);});
   rPostbacks();
+  loadUsers();
 }
 
 function selectBrand(slug,btn,silent){
@@ -551,7 +662,7 @@ async function go(gte,lte){
   async function cnt(ev){var r=await sb('/rest/v1/conversions?select=*'+bf+df+'&event_type=eq.'+ev+'&limit=1',{headers:{'Prefer':'count=exact'}});var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);}
   var res=await Promise.all([cnt('visit'),cnt('registration'),cnt('ftd'),cnt('deposit')]);
   var visits=res[0],regs=res[1],ftds=res[2],deps=res[3];
-  var sr=await fetch(SB_URL+'/rest/v1/conversions?select=event_type,zone_id,campaign_id,landing_page,brand,click_id,created_at,payout,currency,country&order=created_at.desc&limit=20000'+bf+df,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Range-Unit':'items','Range':'0-19999'}});
+  var sr=await fetch(SB_URL+'/rest/v1/conversions?select=event_type,zone_id,campaign_id,landing_page,brand,click_id,created_at,payout,currency,country,network&order=created_at.desc&limit=20000'+bf+df,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Range-Unit':'items','Range':'0-19999'}});
   var rd=await sr.json(),rows=Array.isArray(rd)?rd:[];
   var bk=await Promise.all([
     rpcBreakdown('get_breakdown_by_zone',brand,'visit',gte,lte),
@@ -620,11 +731,13 @@ function rdRpc(id,rows,keyField){
 function rLog(data){
   var el=document.getElementById('events-table');if(!el)return;
   if(!data.length){el.innerHTML='<div class="empty">No events in this date range</div>';return;}
-  var html='<table><thead><tr><th>Time</th><th>Event</th><th>Brand</th><th>Zone</th><th>Campaign</th><th>LP</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th>Time</th><th>Event</th><th>Network</th><th>Brand</th><th>Zone</th><th>Campaign</th><th>LP</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
   data.forEach(function(d){
     var dt=new Date(d.created_at),b2=brands.find(function(b){return b.slug===d.brand;}),c2=(b2&&b2.currency)||'ZAR';
     var z=d.zone_id&&UUID_RE.test(String(d.zone_id))?'\u2014':(d.zone_id||'\u2014');
-    html+='<tr><td>'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</td><td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td><td>'+(d.brand||'\u2014')+'</td><td>'+z+'</td><td>'+(d.campaign_id||'\u2014')+'</td><td>'+(d.landing_page||'\u2014')+'</td><td>'+(d.country||'\u2014')+'</td><td>'+(d.payout>0?c2+' '+Number(d.payout).toFixed(2):'\u2014')+'</td></tr>';
+    var net=d.network||'unknown';
+    var netColor=net==='mondiad'?'#7b7fff':net==='propeller'?'#ff6b47':'var(--muted)';
+    html+='<tr><td>'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</td><td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td><td style="font-family:\'DM Mono\',monospace;font-size:10px;color:'+netColor+'">'+net+'</td><td>'+(d.brand||'\u2014')+'</td><td>'+z+'</td><td>'+(d.campaign_id||'\u2014')+'</td><td>'+(d.landing_page||'\u2014')+'</td><td>'+(d.country||'\u2014')+'</td><td>'+(d.payout>0?c2+' '+Number(d.payout).toFixed(2):'\u2014')+'</td></tr>';
   });
   el.innerHTML=html+'</tbody></table>';
 }
@@ -634,13 +747,7 @@ function showTab(name){document.querySelectorAll('.panel').forEach(function(p){p
 async function loadAudit(){
   var el=document.getElementById('audit-table');if(!el)return;
   el.innerHTML='<div class="loading">querying supabase...</div>';
-  var ranges=[
-    {key:'today',label:'Today'},
-    {key:'yesterday',label:'Yesterday'},
-    {key:'7d',label:'7 Days'},
-    {key:'30d',label:'30 Days'},
-    {key:'all',label:'All Time'}
-  ];
+  var ranges=[{key:'today',label:'Today'},{key:'yesterday',label:'Yesterday'},{key:'7d',label:'7 Days'},{key:'30d',label:'30 Days'},{key:'all',label:'All Time'}];
   var events=['visit','registration','ftd','deposit'];
   var rows=[];
   for(var i=0;i<ranges.length;i++){
@@ -656,17 +763,180 @@ async function loadAudit(){
     rows.push({range:r.label,counts:counts});
   }
   var html='<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid var(--border)">Range</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">Visits</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">Registrations</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">FTDs</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">Deposits</th></tr></thead><tbody>';
-  rows.forEach(function(row){
-    html+='<tr><td style="padding:8px;border-bottom:1px solid var(--border)"><strong>'+row.range+'</strong></td>';
-    html+='<td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.visit.toLocaleString()+'</td>';
-    html+='<td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.registration.toLocaleString()+'</td>';
-    html+='<td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.ftd.toLocaleString()+'</td>';
-    html+='<td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.deposit.toLocaleString()+'</td></tr>';
+  rows.forEach(function(row){html+='<tr><td style="padding:8px;border-bottom:1px solid var(--border)"><strong>'+row.range+'</strong></td><td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.visit.toLocaleString()+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.registration.toLocaleString()+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.ftd.toLocaleString()+'</td><td style="text-align:right;padding:8px;border-bottom:1px solid var(--border)">'+row.counts.deposit.toLocaleString()+'</td></tr>';});
+  el.innerHTML=html+'</tbody></table>';
+}
+
+// ===== NETWORKS TAB =====
+async function loadNetworks(){
+  var p=dp(currentRange);
+  var gte=p.gte||null,lte=p.lte||null;
+  var bf=currentBrand!=='__all__'?'&brand=eq.'+currentBrand:'';
+  var df=(gte?'&created_at=gte.'+gte:'')+(lte?'&created_at=lte.'+lte:'');
+  var networks=['mondiad','propeller'];
+  var stats={};
+  for(var i=0;i<networks.length;i++){
+    var net=networks[i];
+    var nf='&network=eq.'+net;
+    async function cntNet(ev,nf2){var r=await sb('/rest/v1/conversions?select=*'+bf+nf2+df+'&event_type=eq.'+ev+'&limit=1',{headers:{'Prefer':'count=exact'}});var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);}
+    var v=await cntNet('visit',nf),r2=await cntNet('registration',nf),f=await cntNet('ftd',nf);
+    stats[net]={visits:v,regs:r2,ftds:f,rr:v>0?((r2/v)*100).toFixed(1)+'%':'—',rf:v>0?((f/v)*100).toFixed(1)+'%':'—'};
+  }
+  // Render comparison cards
+  var colors={mondiad:'#7b7fff',propeller:'#ff6b47'};
+  var labels={mondiad:'Mondiad',propeller:'Propeller Ads'};
+  var html='';
+  networks.forEach(function(net){
+    var s=stats[net],c=colors[net],l=labels[net];
+    html+='<div class="net-card"><div class="net-card-header"><div class="net-dot" style="background:'+c+'"></div><div class="net-card-title">'+l+'</div></div>';
+    html+='<div class="net-stat-row"><span class="net-stat-label">Visits</span><span class="net-stat-val">'+s.visits.toLocaleString()+'</span></div>';
+    html+='<div class="net-stat-row"><span class="net-stat-label">Registrations</span><span class="net-stat-val">'+s.regs.toLocaleString()+'</span></div>';
+    html+='<div class="net-stat-row"><span class="net-stat-label">FTDs</span><span class="net-stat-val">'+s.ftds.toLocaleString()+'</span></div>';
+    html+='<div class="net-stat-row"><span class="net-stat-label">Visit → Reg</span><span class="net-stat-val">'+s.rr+'</span></div>';
+    html+='<div class="net-stat-row"><span class="net-stat-label">Visit → FTD</span><span class="net-stat-val">'+s.rf+'</span></div>';
+    html+='</div>';
   });
-  html+='</tbody></table>';
+  document.getElementById('net-compare').innerHTML=html||'<div class="empty">No network data yet</div>';
+  // Breakdown bars
+  function renderNetBreakdown(elId,field){
+    var el=document.getElementById(elId);if(!el)return;
+    var data=networks.map(function(n){return{net:n,v:stats[n][field]};}).sort(function(a,b){return b.v-a.v;});
+    var max=Math.max(...data.map(function(d){return d.v;}),1);
+    var html='';
+    data.forEach(function(d){html+='<div class="breakdown-row"><span class="breakdown-key" style="color:'+colors[d.net]+'">'+labels[d.net]+'</span><span class="breakdown-val">'+d.v.toLocaleString()+'</span></div><div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:'+Math.round(d.v/max*100)+'%;background:'+colors[d.net]+';opacity:.7"></div></div>';});
+    el.innerHTML=html||'<div class="empty">No data yet</div>';
+  }
+  renderNetBreakdown('net-visits','visits');
+  renderNetBreakdown('net-regs','regs');
+  renderNetBreakdown('net-ftds','ftds');
+}
+
+// ===== SEGMENTS TAB =====
+async function loadSegments(){
+  var el=document.getElementById('seg-kpis');
+  el.innerHTML='<div class="loading" style="grid-column:1/-1">loading segments...</div>';
+  // Fetch segment counts from retargeting_visitors table
+  async function segCount(filter){
+    var r=await sb('/rest/v1/retargeting_visitors?select=*'+filter+'&limit=1',{headers:{'Prefer':'count=exact'}});
+    var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);
+  }
+  var total=await segCount('');
+  var guests=await segCount('&segment=eq.guest');
+  var registered=await segCount('&segment=eq.registered');
+  var multiVisit=await segCount('&is_multi_visit=eq.true&segment=eq.guest');
+  var aviator=await segCount('&category=eq.aviator');
+  var casino=await segCount('&category=eq.casino');
+  var promo=await segCount('&category=eq.promotion');
+  var fromGoogle=await segCount('&source=eq.google');
+  // KPI cards — multiply by 10 since we sample at 10%
+  var mult=10;
+  var kpis=[
+    {label:'Total Audience',val:(total*mult).toLocaleString(),sub:'est. unique visitors (10% sample)'},
+    {label:'Guest Visitors',val:(guests*mult).toLocaleString(),sub:'unregistered — FTD retargeting pool'},
+    {label:'Multi-Visit Guests',val:(multiVisit*mult).toLocaleString(),sub:'returned without registering'},
+    {label:'Google-Referred',val:(fromGoogle*mult).toLocaleString(),sub:'highest intent segment'},
+  ];
+  var html='';
+  kpis.forEach(function(k){html+='<div class="seg-card"><div class="seg-label">'+k.label+'</div><div class="seg-value">'+k.val+'</div><div class="seg-sub">'+k.sub+'</div></div>';});
+  el.innerHTML=html;
+  // Fetch breakdown data
+  var r=await sb('/rest/v1/retargeting_visitors?select=category,source,device_type,segment,is_multi_visit&limit=50000');
+  var rows=await r.json();
+  if(!Array.isArray(rows)||!rows.length){['seg-category','seg-source','seg-device','seg-segment','seg-multivisit'].forEach(function(id){document.getElementById(id).innerHTML='<div class="empty">No data yet</div>';});return;}
+  function groupBy(field,colors2){
+    var counts={};
+    rows.forEach(function(r2){var k=r2[field]||'unknown';counts[k]=(counts[k]||0)+1;});
+    var sorted=Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
+    var tot=sorted.reduce(function(s,x){return s+x[1];},0);
+    var max=sorted[0]?sorted[0][1]:1;
+    var html='';
+    sorted.forEach(function(item,i){
+      var k=item[0],v=item[1]*mult;
+      var pct=(item[1]/tot*100).toFixed(1);
+      var color=colors2&&colors2[k]?colors2[k]:'var(--brand-color)';
+      html+='<div class="seg-bar-row"><span class="seg-bar-label">'+k+'</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(item[1]/max*100)+'%;background:'+color+'"></div></div><span class="seg-bar-val">'+v.toLocaleString()+'</span><span class="seg-bar-pct">'+pct+'%</span></div>';
+    });
+    return html||'<div class="empty">No data</div>';
+  }
+  var catColors={aviator:'#e8ff47',casino:'#47ffb2',promotion:'#ff9f47',sports:'#7b7fff',general:'#555'};
+  var srcColors={google:'#47d4ff',facebook:'#7b7fff',instagram:'#ff47b2',twitter:'#47ffb2',tiktok:'#ff9f47',direct:'#888',other:'#555'};
+  var devColors={mobile:'#e8ff47',desktop:'#7b7fff'};
+  var segColors={guest:'#e8ff47',registered:'#47ffb2'};
+  document.getElementById('seg-category').innerHTML=groupBy('category',catColors);
+  document.getElementById('seg-source').innerHTML=groupBy('source',srcColors);
+  document.getElementById('seg-device').innerHTML=groupBy('device_type',devColors);
+  document.getElementById('seg-segment').innerHTML=groupBy('segment',segColors);
+  // Multi-visit
+  var mvCount=rows.filter(function(r2){return r2.is_multi_visit&&r2.segment==='guest';}).length;
+  var nvCount=rows.filter(function(r2){return !r2.is_multi_visit&&r2.segment==='guest';}).length;
+  var mvMax=Math.max(mvCount,nvCount,1);
+  document.getElementById('seg-multivisit').innerHTML=
+    '<div class="seg-bar-row"><span class="seg-bar-label">Multi-visit</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(mvCount/mvMax*100)+'%;background:#e8ff47"></div></div><span class="seg-bar-val">'+(mvCount*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((mvCount/(mvCount+nvCount||1))*100).toFixed(1)+'%</span></div>'+
+    '<div class="seg-bar-row"><span class="seg-bar-label">New visitor</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(nvCount/mvMax*100)+'%;background:#555"></div></div><span class="seg-bar-val">'+(nvCount*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((nvCount/(mvCount+nvCount||1))*100).toFixed(1)+'%</span></div>';
+}
+
+// ===== CLICK LOOKUP =====
+async function doLookup(){
+  var cid=document.getElementById('lookup-input').value.trim();
+  var el=document.getElementById('lookup-result');
+  if(!cid){el.innerHTML='<div class="empty">Enter a click ID</div>';return;}
+  el.innerHTML='<div class="loading">searching...</div>';
+  var r=await sb('/rest/v1/conversions?click_id=eq.'+encodeURIComponent(cid)+'&order=created_at.asc&select=*');
+  var rows=await r.json();
+  if(!Array.isArray(rows)||!rows.length){el.innerHTML='<div class="empty">No records found for click ID: '+cid+'</div>';return;}
+  var eventColors={visit:'#7b7fff',registration:'#47ffb2',ftd:'#e8ff47',deposit:'#ff9f47'};
+  var html='<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-bottom:16px;">'+rows.length+' event'+(rows.length>1?'s':'')+' found for <span style="color:var(--accent)">'+cid+'</span></div>';
+  rows.forEach(function(d,i){
+    var dt=new Date(d.created_at);
+    var b2=brands.find(function(b){return b.slug===d.brand;}),c2=(b2&&b2.currency)||'ZAR';
+    var color=eventColors[d.event_type]||'#888';
+    var payout=d.payout>0?'<span class="journey-payout">'+c2+' '+Number(d.payout).toFixed(2)+'</span>':'';
+    var detail='Zone: '+(d.zone_id||'—')+' · Campaign: '+(d.campaign_id||'—')+' · Network: '+(d.network||'—');
+    html+='<div class="journey-step"><div class="journey-dot" style="background:'+color+'"></div><span class="journey-event" style="color:'+color+'">'+d.event_type.toUpperCase()+'</span><span class="journey-time">'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</span><span class="journey-detail">'+detail+'</span>'+payout+'</div>';
+  });
   el.innerHTML=html;
 }
 
+// ===== USERS =====
+async function loadUsers(){
+  var el=document.getElementById('admin-users-list');if(!el)return;
+  var r=await sb('/rest/v1/dashboard_users?select=*&order=created_at.asc');
+  var users=await r.json();
+  if(!Array.isArray(users)||!users.length){el.innerHTML='<div class="empty">No users</div>';return;}
+  var html='';
+  users.forEach(function(u){
+    var initials=(u.name||u.email).split(' ').map(function(x){return x[0];}).slice(0,2).join('').toUpperCase();
+    var isMe=currentUser&&currentUser.id===u.id;
+    html+='<div class="user-row"><div class="user-avatar">'+initials+'</div><div class="user-info"><div class="user-name">'+(u.name||'—')+(isMe?' <span style="font-size:9px;color:var(--muted)">(you)</span>':'')+'</div><div class="user-email">'+u.email+'</div></div><span class="user-role '+u.role+'">'+u.role+'</span>'+(isMe?'':'<button class="del-btn" data-uid="'+u.id+'" data-name="'+(u.name||u.email)+'">Remove</button>')+'</div>';
+  });
+  el.innerHTML=html;
+  el.addEventListener('click',function(e){
+    var btn=e.target.closest('.del-btn[data-uid]');
+    if(btn)deleteUser(btn.dataset.uid,btn.dataset.name);
+  });
+}
+
+function openAddUser(){document.getElementById('user-name').value='';document.getElementById('user-email').value='';document.getElementById('user-password').value='';document.getElementById('user-role').value='viewer';document.getElementById('user-modal').classList.add('open');}
+function closeUserModal(){document.getElementById('user-modal').classList.remove('open');}
+
+async function saveUser(){
+  var name=document.getElementById('user-name').value.trim();
+  var email=document.getElementById('user-email').value.trim();
+  var password=document.getElementById('user-password').value.trim();
+  var role=document.getElementById('user-role').value;
+  if(!email||!password){alert('Email and password required');return;}
+  var r=await sb('/rest/v1/dashboard_users',{method:'POST',body:JSON.stringify({name:name,email:email,password:password,role:role,active:true}),headers:{'Content-Type':'application/json','Prefer':'return=minimal'}});
+  if(r.ok){closeUserModal();loadUsers();}
+  else{var err=await r.text();alert('Error: '+err);}
+}
+
+async function deleteUser(id,name){
+  if(!confirm('Remove '+name+' from dashboard access?'))return;
+  await sb('/rest/v1/dashboard_users?id=eq.'+id,{method:'DELETE'});
+  loadUsers();
+}
+
+// ===== EXISTING FUNCTIONS (unchanged) =====
 function rPostbacks(){
   var el=document.getElementById('admin-postbacks');if(!el)return;
   if(!brands.length){el.innerHTML='<div class="empty">No brands yet</div>';return;}
@@ -692,7 +962,7 @@ function rPostbacks(){
   });
 }
 
-function openAddBrand(){selColor=COLORS[0];document.getElementById('brand-name').value='';document.getElementById('brand-slug').value='';document.getElementById('brand-currency').value='ZAR';var html='';COLORS.forEach(function(c){html+='<div class="color-swatch'+(c===selColor?' selected':'')+'" style="background:'+c+'" data-color="'+c+'"></div>';});document.getElementById('color-row').innerHTML=html;document.getElementById('color-row').addEventListener('click',function(e){var sw=e.target.closest('.color-swatch');if(sw){selColor=sw.dataset.color;document.querySelectorAll('.color-swatch').forEach(function(s){s.classList.remove('selected');});sw.classList.add('selected');}});document.getElementById('brand-modal').classList.add('open');}
+function openAddBrand(){selColor=COLORS[0];document.getElementById('brand-name').value='';document.getElementById('brand-slug').value='';document.getElementById('brand-currency').value='ZAR';var html='';COLORS.forEach(function(c){html+='<div class="color-swatch'+(c===selColor?' selected':'')+'\" style="background:'+c+'" data-color="'+c+'"></div>';});document.getElementById('color-row').innerHTML=html;document.getElementById('color-row').addEventListener('click',function(e){var sw=e.target.closest('.color-swatch');if(sw){selColor=sw.dataset.color;document.querySelectorAll('.color-swatch').forEach(function(s){s.classList.remove('selected');});sw.classList.add('selected');}});document.getElementById('brand-modal').classList.add('open');}
 function closeModal(){document.getElementById('brand-modal').classList.remove('open');}
 function pickColor(c,el){selColor=c;document.querySelectorAll('.color-swatch').forEach(function(s){s.classList.remove('selected');});el.classList.add('selected');}
 function autoSlug(){document.getElementById('brand-slug').value=document.getElementById('brand-name').value.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');}
