@@ -4,236 +4,252 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BetTrev Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
-
-:root {
-  --bg:#0a0a0a; --surface:#111; --surface2:#181818;
-  --border:#222; --border2:#2a2a2a;
-  --text:#f0f0f0; --muted:#555; --muted2:#888;
-  --accent:#e8ff47; --danger:#ff6b47;
-  --reg:#47ffb2; --ftd:#e8ff47; --visit:#7b7fff; --deposit:#ff9f47;
-  --brand-color:#e8ff47;
+:root{
+  --bg:#f6f6f2; --card:#ffffff; --border:#edede7; --border2:#e7e7e1;
+  --divider:#f3f3ee; --zebra:#fafaf7; --bar-track:#f1f1ec;
+  --ink:#16160f; --ink2:#54544d; --ink3:#74746c; --muted:#9a9a92;
+  --faint:#b0b0a6; --faint2:#bdbdb3;
+  --accent:#84cc16; --fill:#a3e635; --deep:#4d7c0f; --soft:#f1fbe0;
+  --neg:#c2410c; --neg-bg:#fdf0ea;
+  --brand-color:#a3e635;
+  --pill-bg:#16160f; --pill-text:#ffffff;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
-input,button,select{font-family:inherit;}
+body{background:var(--bg);color:var(--ink);font-family:'Hanken Grotesk',sans-serif;min-height:100vh;}
+input,button,select,textarea{font-family:inherit;}
 
 /* LOGIN */
-#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,rgba(123,127,255,0.12) 0%,transparent 70%);}
-.login-box{width:380px;padding:52px 44px;border:1px solid var(--border2);background:var(--surface);position:relative;overflow:hidden;} .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
-.login-box h1{font-size:30px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;}
-.login-box h1 span{color:var(--accent);}
-.login-box p{font-size:12px;color:var(--muted2);margin-bottom:32px;font-family:'DM Mono',monospace;}
-.login-box input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 16px;font-family:'DM Mono',monospace;font-size:14px;margin-bottom:12px;outline:none;transition:border-color .2s;}
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.login-box{width:400px;padding:52px 44px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 4px 24px rgba(20,20,15,.06);}
+.login-logo{font:800 28px 'Hanken Grotesk';letter-spacing:-.02em;margin-bottom:4px;}
+.login-logo span{color:var(--deep);}
+.login-sub{font:500 10px 'IBM Plex Mono';letter-spacing:.22em;color:var(--faint2);margin-bottom:36px;}
+.login-box input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--ink);padding:13px 16px;font-size:14px;margin-bottom:10px;outline:none;border-radius:11px;transition:border-color .2s;}
 .login-box input:focus{border-color:var(--accent);}
-.login-box button{width:100%;background:var(--accent);color:#000;border:none;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
-.login-box button:hover{opacity:.85;}
-.login-error{color:var(--danger);font-size:12px;margin-top:12px;font-family:'DM Mono',monospace;display:none;}
+.login-box button{width:100%;background:var(--fill);color:var(--ink);border:none;padding:14px;font:700 13px 'Hanken Grotesk';cursor:pointer;border-radius:11px;box-shadow:0 1px 2px rgba(20,20,15,.08);transition:opacity .2s;}
+.login-box button:hover{opacity:.88;}
+.login-error{color:var(--neg);font:500 12px 'IBM Plex Mono';margin-top:12px;display:none;}
 
-/* LAYOUT */
-#app{display:none;}
-.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow-y:auto;}
-.main{margin-left:220px;min-height:100vh;}
+/* APP LAYOUT */
+#app{display:none;min-height:100vh;padding:18px;gap:18px;}
+#app.visible{display:flex;}
 
 /* SIDEBAR */
-.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
-.sidebar-logo h1{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
-.sidebar-logo h1 span{color:var(--accent);}
-.sidebar-logo p{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;letter-spacing:1px;text-transform:uppercase;}
-.sidebar-section{padding:16px 12px 8px;}
-.sidebar-section-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:8px;font-family:'DM Mono',monospace;}
-.brand-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;background:transparent;border:none;color:var(--muted2);cursor:pointer;border-radius:4px;transition:all .15s;text-align:left;font-size:13px;font-weight:600;}
-.brand-btn:hover{background:var(--surface2);color:var(--text);}
-.brand-btn.active{background:var(--surface2);color:var(--text);}
-.brand-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.brand-all-dot{width:8px;height:8px;border-radius:50%;background:conic-gradient(#e8ff47 0% 33%,#47ffb2 33% 66%,#7b7fff 66% 100%);flex-shrink:0;}
-.add-brand-btn{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:transparent;border:1px dashed var(--border2);color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Mono',monospace;margin:4px 0;transition:all .15s;}
+.sidebar{width:240px;flex:none;background:var(--card);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;padding:26px 18px;position:sticky;top:18px;height:calc(100vh - 36px);overflow-y:auto;}
+.sidebar-logo{font:800 24px 'Hanken Grotesk';letter-spacing:-.02em;padding:0 6px;}
+.sidebar-logo span{color:var(--deep);}
+.sidebar-tagline{font:500 10px 'IBM Plex Mono';letter-spacing:.22em;color:var(--faint2);margin-top:5px;padding:0 6px;}
+.sidebar-section-label{font:600 10px 'IBM Plex Mono';letter-spacing:.18em;color:var(--faint2);margin:34px 0 12px;padding:0 6px;}
+#brand-list{display:flex;flex-direction:column;gap:4px;}
+.brand-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;background:transparent;border:none;color:var(--ink2);cursor:pointer;border-radius:11px;transition:background .15s;text-align:left;font:500 13.5px 'Hanken Grotesk';}
+.brand-btn:hover{background:#f4f4ef;}
+.brand-btn.active{background:var(--pill-bg);color:#fff;}
+.brand-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#d6d6cd;}
+.brand-all-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--fill);}
+.add-brand-btn{display:flex;align-items:center;gap:8px;width:100%;padding:11px 12px;background:transparent;border:1px dashed #dcdcd2;color:var(--muted);cursor:pointer;font:500 12.5px 'Hanken Grotesk';margin-top:8px;border-radius:11px;transition:all .15s;}
 .add-brand-btn:hover{border-color:var(--accent);color:var(--accent);}
-.sidebar-bottom{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border);}
-.sidebar-btn{display:block;width:100%;padding:8px 10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;text-align:center;margin-bottom:8px;}
-.sidebar-btn:hover{border-color:var(--danger);color:var(--danger);}
+.sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;gap:6px;}
+.sidebar-admin-btn{padding:11px 12px;border-radius:11px;background:#f4f4ef;color:var(--ink2);font:500 12.5px 'Hanken Grotesk';cursor:pointer;border:none;text-align:left;transition:background .15s;}
+.sidebar-admin-btn:hover{background:#ecece6;}
+.sidebar-logout-btn{padding:11px 12px;border-radius:11px;background:transparent;color:var(--muted);font:500 12.5px 'Hanken Grotesk';cursor:pointer;border:none;text-align:left;transition:color .15s;}
+.sidebar-logout-btn:hover{color:var(--neg);}
+
+/* MAIN */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;}
 
 /* TOPBAR */
-.topbar{padding:18px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.topbar-left h2{font-size:18px;font-weight:800;letter-spacing:-0.5px;}
-.topbar-left p{font-size:11px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:2px;}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.last-updated{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
-.icon-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s;}
-.icon-btn:hover{border-color:var(--brand-color);color:var(--brand-color);}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.topbar-title{font:700 26px 'Hanken Grotesk';letter-spacing:-.015em;}
+.topbar-sub{font:400 17px 'Hanken Grotesk';color:var(--muted);margin-left:6px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.last-updated{font:500 12px 'IBM Plex Mono';color:var(--faint);}
+.refresh-btn{display:flex;align-items:center;gap:7px;padding:10px 15px;border:none;border-radius:11px;background:var(--fill);color:var(--ink);font:600 13px 'Hanken Grotesk';cursor:pointer;box-shadow:0 1px 2px rgba(20,20,15,.08);transition:opacity .2s;}
+.refresh-btn:hover{opacity:.88;}
 
 /* CONTROLS */
-.controls{padding:16px 32px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.date-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:0.5px;}
-.date-btn:hover,.date-btn.active{border-color:var(--brand-color);color:var(--brand-color);background:rgba(255,255,255,.03);}
-.date-inputs{display:flex;gap:8px;margin-left:auto;align-items:center;}
-.date-inputs input{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 10px;font-family:'DM Mono',monospace;font-size:11px;outline:none;}
-.date-inputs input:focus{border-color:var(--brand-color);}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.date-segment{display:inline-flex;background:var(--card);border:1px solid var(--border);border-radius:11px;padding:3px;}
+.date-btn{padding:8px 16px;border-radius:8px;background:transparent;border:none;color:var(--ink3);font:500 12.5px 'Hanken Grotesk';cursor:pointer;transition:all .15s;}
+.date-btn:hover{color:var(--ink);}
+.date-btn.active{background:var(--pill-bg);color:#fff;}
+.controls-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.date-inputs{display:flex;align-items:center;gap:10px;}
+.date-inputs input[type="date"]{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--ink3);font:500 12px 'IBM Plex Mono';outline:none;cursor:pointer;color-scheme:light;}
+.date-inputs input[type="date"]:focus{border-color:var(--accent);}
 
-/* METRICS */
-.metrics{padding:28px 32px;display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
-.metric-card{background:var(--surface);border:1px solid var(--border);padding:20px 18px;position:relative;overflow:hidden;}
-.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.m-visits::before{background:var(--visit);}
-.m-regs::before{background:var(--reg);}
-.m-ftds::before{background:var(--ftd);}
-.m-deps::before{background:var(--deposit);}
-.m-rr::before{background:var(--reg);}
-.m-rf::before{background:var(--ftd);}
-.metric-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
-.metric-value{font-size:32px;font-weight:800;letter-spacing:-2px;line-height:1;}
-.m-visits .metric-value{color:var(--visit);}
-.m-regs .metric-value{color:var(--reg);}
-.m-ftds .metric-value{color:var(--ftd);}
-.m-deps .metric-value{color:var(--deposit);}
-.m-rr .metric-value{color:var(--reg);font-size:24px;}
-.m-rf .metric-value{color:var(--ftd);font-size:24px;}
-.metric-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;}
+/* KPI CARDS */
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:17px 18px;box-shadow:0 1px 2px rgba(20,20,15,.04);display:flex;flex-direction:column;gap:11px;}
+.metric-label{font:600 10px 'IBM Plex Mono';letter-spacing:.11em;color:#a8a89f;}
+.metric-value{font:600 29px 'Hanken Grotesk';letter-spacing:-.02em;color:var(--ink);}
+.metric-sub{font:400 11.5px 'Hanken Grotesk';color:var(--muted);}
 
 /* TABS */
-.tabs{padding:0 32px;display:flex;border-bottom:1px solid var(--border);overflow-x:auto;}
-.tab{padding:12px 20px;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;}
-.tab:hover{color:var(--text);}
-.tab.active{color:var(--brand-color);border-bottom-color:var(--brand-color);}
+.tabs{display:flex;gap:28px;border-bottom:1px solid var(--border2);padding:4px 2px 0;overflow-x:auto;}
+.tab{padding-bottom:12px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;color:var(--muted);font:500 13px 'Hanken Grotesk';transition:all .15s;white-space:nowrap;}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--ink);font-weight:600;border-bottom-color:var(--accent);}
 
 /* PANELS */
-.panel{padding:28px 32px;display:none;}
+.panel{display:none;padding-top:4px;}
 .panel.active{display:block;}
 
-/* BREAKDOWNS */
-.breakdown-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:28px;}
-.breakdown-card{background:var(--surface);border:1px solid var(--border);padding:20px;}
-.breakdown-card h3{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;font-family:'DM Mono',monospace;}
-.breakdown-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #141414;font-family:'DM Mono',monospace;font-size:12px;}
+/* BREAKDOWN CARDS */
+.breakdown-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+.breakdown-grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px;align-items:start;}
+.breakdown-grid-half{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.breakdown-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,20,15,.04);}
+.breakdown-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.breakdown-title{font:600 14px 'Hanken Grotesk';color:var(--ink);}
+.breakdown-total{font:500 11px 'IBM Plex Mono';color:var(--faint);}
+.breakdown-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--divider);}
 .breakdown-row:last-child{border-bottom:none;}
-.breakdown-key{color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;}
-.breakdown-val{font-weight:500;flex-shrink:0;margin-left:8px;}
-.breakdown-bar{height:2px;background:var(--border2);margin-top:4px;border-radius:1px;overflow:hidden;}
-.breakdown-bar-fill{height:100%;border-radius:1px;}
+.breakdown-key{font:500 13px 'Hanken Grotesk';color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;}
+.breakdown-val{font:500 13px 'IBM Plex Mono';color:var(--ink);flex-shrink:0;margin-left:8px;}
+.bar-track{background:var(--bar-track);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;background:var(--fill);}
+
+/* ZONE TABLE */
+.zone-col-headers{display:grid;grid-template-columns:120px 1fr 64px 56px 64px;gap:14px;padding:0 8px 10px;font:600 9.5px 'IBM Plex Mono';letter-spacing:.1em;color:var(--faint);}
+.zone-col-headers span:nth-child(3),.zone-col-headers span:nth-child(4),.zone-col-headers span:nth-child(5){text-align:right;}
+.zone-row{display:grid;grid-template-columns:120px 1fr 64px 56px 64px;gap:14px;align-items:center;padding:12px 8px;border-radius:10px;}
+.zone-row:nth-child(even){background:var(--zebra);}
+.zone-name{font:500 13.5px 'Hanken Grotesk';color:#33332c;}
+.zone-count{font:500 13px 'IBM Plex Mono';text-align:right;}
+.zone-share{font:400 12px 'IBM Plex Mono';color:var(--muted);text-align:right;}
+.zone-ftd{font:500 13px 'IBM Plex Mono';color:var(--deep);text-align:right;}
+
+/* BRAND BARS */
+.brand-bar-row{margin-bottom:17px;}
+.brand-bar-row:last-child{margin-bottom:0;}
+.brand-bar-labels{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px;}
+.brand-bar-name{font:500 13.5px 'Hanken Grotesk';color:#33332c;}
+.brand-bar-count{font:600 14px 'IBM Plex Mono';}
+.brand-bar-share{font:400 12px 'IBM Plex Mono';color:var(--faint2);margin-left:4px;}
+
+/* ZONE MINI */
+.zone-mini-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:1px solid var(--divider);}
+.zone-mini-row:first-child{border-top:none;}
+.zone-mini-name{font:500 13px 'Hanken Grotesk';color:var(--ink2);}
+.zone-mini-right{display:flex;align-items:center;gap:12px;}
+.zone-mini-count{font:500 12.5px 'IBM Plex Mono';width:40px;text-align:right;}
+
+/* NETWORK BADGES */
+.net-badge{display:inline-block;padding:3px 9px;font:600 10px 'IBM Plex Mono';letter-spacing:.05em;text-transform:uppercase;border-radius:20px;}
+.net-badge.mondiad{background:#eef0ff;color:#4338ca;}
+.net-badge.propeller{background:#fff0eb;color:#c2410c;}
+.net-badge.unknown{background:#f4f4ef;color:var(--muted);}
+
+/* EVENT BADGES */
+.badge{display:inline-block;padding:3px 9px;font:600 10px 'IBM Plex Mono';letter-spacing:.05em;text-transform:uppercase;border-radius:20px;}
+.badge.ftd{background:var(--soft);color:var(--deep);}
+.badge.registration{background:#e9f7ee;color:#15803d;}
+.badge.visit{background:#eef0ff;color:#4338ca;}
+.badge.deposit{background:#fff7ed;color:#c2410c;}
+.badge.unknown{background:#f4f4ef;color:var(--muted);}
 
 /* TABLE */
-table{width:100%;border-collapse:collapse;font-family:'DM Mono',monospace;font-size:12px;}
-th{text-align:left;padding:9px 14px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:500;}
-td{padding:11px 14px;border-bottom:1px solid #141414;color:var(--text);}
-tr:hover td{background:var(--surface);}
-.badge{display:inline-block;padding:3px 8px;font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:600;}
-.badge.ftd{background:rgba(232,255,71,.1);color:var(--ftd);}
-.badge.registration{background:rgba(71,255,178,.1);color:var(--reg);}
-.badge.visit{background:rgba(123,127,255,.1);color:var(--visit);}
-.badge.deposit{background:rgba(255,159,71,.1);color:var(--deposit);}
-.badge.unknown{background:rgba(85,85,85,.1);color:var(--muted2);}
-.empty{text-align:center;padding:40px;font-family:'DM Mono',monospace;color:var(--muted);font-size:12px;}
-.loading{text-align:center;padding:40px;font-family:'DM Mono',monospace;color:var(--muted);font-size:12px;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:10px 14px;font:600 9.5px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--border);}
+td{padding:13px 14px;border-bottom:1px solid var(--divider);font:400 13px 'Hanken Grotesk';color:var(--ink2);}
+tr:hover td{background:var(--zebra);}
+.empty{text-align:center;padding:48px;font:500 12px 'IBM Plex Mono';color:var(--faint2);}
+.loading{text-align:center;padding:48px;font:500 12px 'IBM Plex Mono';color:var(--faint2);}
 
-/* ALERT BOX */
-.alert{background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--brand-color);padding:14px 18px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);line-height:1.7;margin-bottom:20px;}
-.alert strong{color:var(--text);}
-.alert code{color:var(--brand-color);font-size:10px;word-break:break-all;}
+/* SEGMENTS */
+.seg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+.seg-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:18px;box-shadow:0 1px 2px rgba(20,20,15,.04);}
+.seg-label{font:600 10px 'IBM Plex Mono';letter-spacing:.11em;color:#a8a89f;margin-bottom:10px;}
+.seg-value{font:600 26px 'Hanken Grotesk';letter-spacing:-.02em;color:var(--ink);}
+.seg-sub{font:400 11px 'Hanken Grotesk';color:var(--muted);margin-top:6px;}
+.seg-bar-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--divider);font:500 12px 'IBM Plex Mono';}
+.seg-bar-row:last-child{border-bottom:none;}
+.seg-bar-label{color:var(--ink2);width:90px;flex-shrink:0;font-size:11px;}
+.seg-bar-track{flex:1;height:5px;background:var(--bar-track);border-radius:3px;overflow:hidden;}
+.seg-bar-fill{height:100%;border-radius:3px;}
+.seg-bar-val{color:var(--ink);width:48px;text-align:right;flex-shrink:0;}
+.seg-bar-pct{color:var(--muted);width:38px;text-align:right;flex-shrink:0;font-size:10px;}
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:200;}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--surface);border:1px solid var(--border2);padding:36px;width:440px;max-height:90vh;overflow-y:auto;}
-.modal h2{font-size:18px;font-weight:800;margin-bottom:6px;}
-.modal p{font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;margin-bottom:24px;line-height:1.6;}
-.modal label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-bottom:6px;}
-.modal input,.modal select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:13px;outline:none;margin-bottom:16px;transition:border-color .2s;}
-.modal input:focus,.modal select:focus{border-color:var(--accent);}
-.modal select option{background:var(--bg);}
-.color-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
-.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s;}
-.color-swatch.selected{border-color:#fff;}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
-.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:9px 20px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;}
-.btn-save{background:var(--accent);color:#000;border:none;padding:9px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
+/* NETWORK COMPARISON */
+.net-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.net-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:20px 22px;box-shadow:0 1px 2px rgba(20,20,15,.04);}
+.net-card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.net-dot{width:10px;height:10px;border-radius:50%;}
+.net-card-title{font:600 14px 'Hanken Grotesk';}
+.net-stat-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--divider);font:400 13px 'Hanken Grotesk';}
+.net-stat-row:last-child{border-bottom:none;}
+.net-stat-label{color:var(--ink2);}
+.net-stat-val{font:500 13px 'IBM Plex Mono';color:var(--ink);}
 
-/* POSTBACK DISPLAY */
-.postback-block{margin-bottom:20px;}
-.postback-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.postback-box{background:var(--bg);border:1px solid var(--border);padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);word-break:break-all;line-height:1.7;position:relative;}
-.postback-box .macro{color:var(--brand-color);}
-.copy-btn{position:absolute;top:6px;right:6px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;transition:all .15s;}
-.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* LOOKUP */
+.lookup-box{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:24px;margin-bottom:16px;box-shadow:0 1px 2px rgba(20,20,15,.04);}
+.lookup-input-row{display:flex;gap:10px;margin-bottom:20px;}
+.lookup-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--ink);padding:11px 14px;font:500 13px 'IBM Plex Mono';outline:none;border-radius:11px;transition:border-color .2s;}
+.lookup-input:focus{border-color:var(--accent);}
+.lookup-btn{background:var(--fill);color:var(--ink);border:none;padding:11px 20px;font:700 13px 'Hanken Grotesk';cursor:pointer;border-radius:11px;box-shadow:0 1px 2px rgba(20,20,15,.08);}
+.journey-step{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--divider);}
+.journey-step:last-child{border-bottom:none;}
+.journey-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.journey-event{font:600 11px 'IBM Plex Mono';width:80px;}
+.journey-time{font:400 11px 'IBM Plex Mono';color:var(--muted);width:150px;}
+.journey-detail{font:400 11px 'IBM Plex Mono';color:var(--ink2);flex:1;}
+.journey-payout{font:500 12px 'IBM Plex Mono';color:var(--deep);}
 
 /* ADMIN */
-.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.admin-card{background:var(--surface);border:1px solid var(--border);padding:24px;}
-.admin-card h3{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:16px;}
-.brand-admin-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #141414;}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.admin-card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:24px;box-shadow:0 1px 2px rgba(20,20,15,.04);}
+.admin-card-title{font:600 10px 'IBM Plex Mono';letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin-bottom:16px;}
+.brand-admin-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--divider);}
 .brand-admin-row:last-child{border-bottom:none;}
 .brand-admin-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .brand-admin-info{flex:1;}
-.brand-admin-name{font-weight:700;font-size:13px;}
-.brand-admin-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;}
-.del-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .15s;flex-shrink:0;}
-.del-btn:hover{border-color:var(--danger);color:var(--danger);}
-
-/* SETUP GUIDE */
+.brand-admin-name{font:600 13px 'Hanken Grotesk';color:var(--ink);}
+.brand-admin-meta{font:400 11px 'IBM Plex Mono';color:var(--muted);margin-top:2px;}
+.del-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 12px;font:500 11px 'Hanken Grotesk';cursor:pointer;border-radius:8px;transition:all .15s;flex-shrink:0;}
+.del-btn:hover{border-color:var(--neg);color:var(--neg);}
+.postback-block{margin-bottom:12px;}
+.postback-label{font:600 9px 'IBM Plex Mono';letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.postback-box{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 44px 10px 12px;font:400 10px 'IBM Plex Mono';color:var(--muted);word-break:break-all;line-height:1.7;position:relative;}
+.copy-btn{position:absolute;top:6px;right:8px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;font:500 9px 'IBM Plex Mono';cursor:pointer;border-radius:6px;transition:all .15s;}
+.copy-btn:hover{border-color:var(--accent);color:var(--deep);}
 .setup-step{display:flex;gap:16px;margin-bottom:24px;}
-.step-num{width:28px;height:28px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;flex-shrink:0;color:var(--brand-color);}
-.step-body h4{font-size:13px;font-weight:700;margin-bottom:6px;}
-.step-body p{font-size:12px;color:var(--muted2);font-family:'DM Mono',monospace;line-height:1.7;}
-.step-body code{color:var(--brand-color);font-size:11px;}
-
-/* SEGMENTS */
-.seg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
-.seg-card{background:var(--surface);border:1px solid var(--border);padding:18px;position:relative;overflow:hidden;}
-.seg-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--brand-color);}
-.seg-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
-.seg-value{font-size:26px;font-weight:800;letter-spacing:-1px;color:var(--accent);}
-.seg-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
-.seg-bar-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #141414;font-family:'DM Mono',monospace;font-size:11px;}
-.seg-bar-row:last-child{border-bottom:none;}
-.seg-bar-label{color:var(--muted2);width:100px;flex-shrink:0;}
-.seg-bar-track{flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden;}
-.seg-bar-fill{height:100%;border-radius:2px;}
-.seg-bar-val{color:var(--text);width:50px;text-align:right;flex-shrink:0;}
-.seg-bar-pct{color:var(--muted);width:40px;text-align:right;flex-shrink:0;font-size:10px;}
-
-/* NETWORK COMPARISON */
-.net-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
-.net-card{background:var(--surface);border:1px solid var(--border);padding:20px;}
-.net-card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-.net-dot{width:10px;height:10px;border-radius:50%;}
-.net-card-title{font-size:13px;font-weight:700;}
-.net-stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #141414;font-family:'DM Mono',monospace;font-size:12px;}
-.net-stat-row:last-child{border-bottom:none;}
-.net-stat-label{color:var(--muted2);}
-.net-stat-val{color:var(--text);font-weight:500;}
-.net-winner{color:var(--accent);font-size:9px;margin-left:6px;}
-
-/* CLICK LOOKUP */
-.lookup-box{background:var(--surface);border:1px solid var(--border);padding:24px;margin-bottom:20px;}
-.lookup-input-row{display:flex;gap:10px;margin-bottom:20px;}
-.lookup-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:13px;outline:none;}
-.lookup-input:focus{border-color:var(--accent);}
-.lookup-btn{background:var(--accent);color:#000;border:none;padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
-.journey-step{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #141414;}
-.journey-step:last-child{border-bottom:none;}
-.journey-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.journey-event{font-family:'DM Mono',monospace;font-size:11px;font-weight:600;width:80px;}
-.journey-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);width:140px;}
-.journey-detail{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);flex:1;}
-.journey-payout{font-family:'DM Mono',monospace;font-size:11px;color:var(--ftd);}
+.step-num{width:28px;height:28px;background:var(--soft);border:1px solid var(--fill);border-radius:8px;display:flex;align-items:center;justify-content:center;font:600 12px 'IBM Plex Mono';flex-shrink:0;color:var(--deep);}
+.step-body h4{font:700 13px 'Hanken Grotesk';color:var(--ink);margin-bottom:6px;}
+.step-body p{font:400 12px 'Hanken Grotesk';color:var(--ink2);line-height:1.7;}
+.step-body code{font:500 11px 'IBM Plex Mono';color:var(--deep);background:var(--soft);padding:1px 5px;border-radius:4px;}
 
 /* USERS */
-.user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #141414;}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--divider);}
 .user-row:last-child{border-bottom:none;}
-.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:var(--soft);border:1px solid var(--fill);display:flex;align-items:center;justify-content:center;font:600 12px 'Hanken Grotesk';flex-shrink:0;color:var(--deep);}
 .user-info{flex:1;}
-.user-name{font-size:13px;font-weight:700;}
-.user-email{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;}
-.user-role{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border2);color:var(--muted);}
-.user-role.admin{border-color:var(--accent);color:var(--accent);}
+.user-name{font:600 13px 'Hanken Grotesk';color:var(--ink);}
+.user-email{font:400 11px 'IBM Plex Mono';color:var(--muted);margin-top:2px;}
+.user-role{font:600 9px 'IBM Plex Mono';padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--muted);}
+.user-role.admin{border-color:var(--fill);color:var(--deep);background:var(--soft);}
 
-@media(max-width:1200px){
-  .metrics{grid-template-columns:repeat(3,1fr);}
-  .breakdown-grid{grid-template-columns:1fr 1fr;}
-  .admin-grid{grid-template-columns:1fr;}
-  .seg-grid{grid-template-columns:repeat(2,1fr);}
-  .net-compare-grid{grid-template-columns:1fr;}
-}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(22,22,15,.5);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(20,20,15,.12);}
+.modal h2{font:800 20px 'Hanken Grotesk';color:var(--ink);margin-bottom:6px;}
+.modal p{font:400 13px 'Hanken Grotesk';color:var(--muted);margin-bottom:24px;line-height:1.6;}
+.modal label{font:600 10px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:6px;}
+.modal input,.modal select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--ink);padding:11px 14px;font:500 13px 'Hanken Grotesk';outline:none;margin-bottom:16px;border-radius:11px;transition:border-color .2s;}
+.modal input:focus,.modal select:focus{border-color:var(--accent);}
+.modal select option{background:var(--card);}
+.color-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s;}
+.color-swatch.selected{border-color:var(--ink);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px 20px;font:500 13px 'Hanken Grotesk';cursor:pointer;border-radius:11px;}
+.btn-save{background:var(--fill);color:var(--ink);border:none;padding:10px 20px;font:700 13px 'Hanken Grotesk';cursor:pointer;border-radius:11px;box-shadow:0 1px 2px rgba(20,20,15,.08);}
+
+@media(max-width:1200px){.metrics{grid-template-columns:repeat(3,1fr);}.breakdown-grid{grid-template-columns:1fr 1fr;}.breakdown-grid-2{grid-template-columns:1fr;}.admin-grid{grid-template-columns:1fr;}.seg-grid{grid-template-columns:repeat(2,1fr);}.net-compare-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -241,10 +257,10 @@ tr:hover td{background:var(--surface);}
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <h1>Bet<span>Trev</span></h1>
-    <p>campaign tracker // v3</p>
-    <input type="email" id="login-email" placeholder="email" autocomplete="username"/>
-    <input type="password" id="login-password" placeholder="password" autocomplete="current-password"/>
+    <div class="login-logo">Bet<span>Trev</span></div>
+    <div class="login-sub">PERFORMANCE TRACKER // V4</div>
+    <input type="email" id="login-email" placeholder="Email address" autocomplete="username"/>
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password"/>
     <button onclick="doLogin()">Enter →</button>
     <div class="login-error" id="login-error">Invalid credentials</div>
   </div>
@@ -252,89 +268,64 @@ tr:hover td{background:var(--surface);}
 
 <!-- APP -->
 <div id="app">
-
-  <div class="sidebar">
-    <div class="sidebar-logo">
-      <h1>Bet<span>Trev</span></h1>
-      <p>tracker v3</p>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Brands</div>
-      <button class="brand-btn active" id="brand-all-btn" onclick="selectBrand('__all__',this)">
-        <div class="brand-all-dot"></div>All Brands
-      </button>
-      <div id="brand-list"></div>
-      <button class="add-brand-btn" onclick="openAddBrand()">+ Add brand</button>
-    </div>
+  <aside class="sidebar">
+    <div class="sidebar-logo">Bet<span>Trev</span></div>
+    <div class="sidebar-tagline">TRACKER V4</div>
+    <div class="sidebar-section-label">BRANDS</div>
+    <button class="brand-btn active" id="brand-all-btn" onclick="selectBrand('__all__',this)">
+      <div class="brand-all-dot"></div>All Brands
+    </button>
+    <div id="brand-list"></div>
+    <button class="add-brand-btn" onclick="openAddBrand()">+ Add brand</button>
     <div class="sidebar-bottom">
-      <button class="sidebar-btn" onclick="showTab('admin')">⚙ Admin / Setup</button>
-      <button class="sidebar-btn" onclick="doLogout()">Logout</button>
+      <button class="sidebar-admin-btn" onclick="showTab('admin')">⚙ Admin / Setup</button>
+      <button class="sidebar-logout-btn" onclick="doLogout()">Logout</button>
     </div>
-  </div>
+  </aside>
 
-  <div class="main">
+  <main class="main">
     <div class="topbar">
-      <div class="topbar-left">
-        <h2 id="topbar-title">All Brands</h2>
-        <p id="topbar-sub">combined view</p>
+      <div>
+        <span class="topbar-title" id="topbar-title">All Brands</span>
+        <span class="topbar-sub" id="topbar-sub">· combined view</span>
       </div>
       <div class="topbar-right">
         <span class="last-updated" id="last-updated">—</span>
-        <button class="icon-btn" onclick="loadData()">↻ Refresh</button>
+        <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
       </div>
     </div>
 
     <div class="controls">
-      <button class="date-btn active" onclick="setRange('today',this)">Today</button>
-      <button class="date-btn" onclick="setRange('yesterday',this)">Yesterday</button>
-      <button class="date-btn" onclick="setRange('7d',this)">7 Days</button>
-      <button class="date-btn" onclick="setRange('30d',this)">30 Days</button>
-      <button class="date-btn" onclick="setRange('all',this)">All Time</button>
-      <div class="date-inputs">
-        <input type="date" id="date-from" onchange="setCustomRange()"/>
-        <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;">→</span>
-        <input type="date" id="date-to" onchange="setCustomRange()"/>
+      <div class="date-segment">
+        <button class="date-btn active" onclick="setRange('today',this)">Today</button>
+        <button class="date-btn" onclick="setRange('yesterday',this)">Yesterday</button>
+        <button class="date-btn" onclick="setRange('7d',this)">7 days</button>
+        <button class="date-btn" onclick="setRange('30d',this)">30 days</button>
+        <button class="date-btn" onclick="setRange('all',this)">All time</button>
+      </div>
+      <div class="controls-right">
+        <div class="date-inputs">
+          <input type="date" id="date-from" onchange="setCustomRange()"/>
+          <span style="color:#c2c2b8;font-family:'IBM Plex Mono';font-size:12px">→</span>
+          <input type="date" id="date-to" onchange="setCustomRange()"/>
+        </div>
       </div>
     </div>
 
     <div class="metrics">
-      <div class="metric-card m-visits">
-        <div class="metric-label">Visits</div>
-        <div class="metric-value" id="m-visits">—</div>
-        <div class="metric-sub">Mondiad traffic</div>
-      </div>
-      <div class="metric-card m-regs">
-        <div class="metric-label">Registrations</div>
-        <div class="metric-value" id="m-regs">—</div>
-        <div class="metric-sub">new accounts</div>
-      </div>
-      <div class="metric-card m-ftds">
-        <div class="metric-label">FTDs</div>
-        <div class="metric-value" id="m-ftds">—</div>
-        <div class="metric-sub" id="m-ftds-sub">first deposits</div>
-      </div>
-      <div class="metric-card m-deps">
-        <div class="metric-label">Deposits</div>
-        <div class="metric-value" id="m-deps">—</div>
-        <div class="metric-sub">all deposits</div>
-      </div>
-      <div class="metric-card m-rr">
-        <div class="metric-label">Visit → Reg</div>
-        <div class="metric-value" id="m-rr">—</div>
-        <div class="metric-sub">conversion rate</div>
-      </div>
-      <div class="metric-card m-rf">
-        <div class="metric-label">Visit → FTD</div>
-        <div class="metric-value" id="m-rf">—</div>
-        <div class="metric-sub">conversion rate</div>
-      </div>
+      <div class="metric-card"><div class="metric-label">VISITS</div><div class="metric-value" id="m-visits">—</div><div class="metric-sub" id="m-visits-sub">ad traffic</div></div>
+      <div class="metric-card"><div class="metric-label">REGISTRATIONS</div><div class="metric-value" id="m-regs">—</div><div class="metric-sub">new accounts</div></div>
+      <div class="metric-card"><div class="metric-label">FTDS</div><div class="metric-value" id="m-ftds">—</div><div class="metric-sub" id="m-ftds-sub">first deposits</div></div>
+      <div class="metric-card"><div class="metric-label">DEPOSITS</div><div class="metric-value" id="m-deps">—</div><div class="metric-sub">all deposits</div></div>
+      <div class="metric-card"><div class="metric-label">VISIT → REG</div><div class="metric-value" id="m-rr">—</div><div class="metric-sub">conversion rate</div></div>
+      <div class="metric-card"><div class="metric-label">VISIT → FTD</div><div class="metric-value" id="m-rf">—</div><div class="metric-sub">conversion rate</div></div>
     </div>
 
     <div class="tabs">
       <button class="tab active" id="tab-btn-overview" onclick="showTab('overview')">Overview</button>
       <button class="tab" id="tab-btn-campaigns" onclick="showTab('campaigns')">Campaigns</button>
       <button class="tab" id="tab-btn-zones" onclick="showTab('zones')">Zones</button>
-      <button class="tab" id="tab-btn-events" onclick="showTab('events')">Event Log</button>
+      <button class="tab" id="tab-btn-events" onclick="showTab('events')">Event log</button>
       <button class="tab" id="tab-btn-audit" onclick="showTab('audit');loadAudit();">Audit</button>
       <button class="tab" id="tab-btn-networks" onclick="showTab('networks');loadNetworks();">Networks</button>
       <button class="tab" id="tab-btn-segments" onclick="showTab('segments');loadSegments();">Segments</button>
@@ -344,95 +335,94 @@ tr:hover td{background:var(--surface);}
 
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
-      <div class="breakdown-grid">
+      <div class="breakdown-grid-2" style="margin-top:4px;">
         <div class="breakdown-card">
-          <h3>Registrations by Zone</h3>
+          <div class="breakdown-header"><span class="breakdown-title">Registrations by zone</span><span class="breakdown-total" id="ov-zone-regs-total">—</span></div>
+          <div class="zone-col-headers"><span>ZONE</span><span>SPLIT</span><span>REG</span><span>SHARE</span><span>FTDS</span></div>
           <div id="ov-zone-regs"><div class="empty">No data yet</div></div>
         </div>
-        <div class="breakdown-card">
-          <h3>FTDs by Zone</h3>
-          <div id="ov-zone-ftds"><div class="empty">No data yet</div></div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="breakdown-card" id="ov-brand-card">
+            <div class="breakdown-header"><span class="breakdown-title">FTDs by brand</span><span class="breakdown-total" id="ov-brand-ftds-total">—</span></div>
+            <div id="ov-brand-ftds"><div class="empty">No data yet</div></div>
+          </div>
+          <div class="breakdown-card">
+            <div class="breakdown-header"><span class="breakdown-title">FTDs by zone</span></div>
+            <div id="ov-zone-ftds"><div class="empty">No data yet</div></div>
+          </div>
         </div>
-        <div class="breakdown-card" id="ov-brand-card">
-          <h3>FTDs by Brand</h3>
-          <div id="ov-brand-ftds"><div class="empty">No data yet</div></div>
-        </div>
+      </div>
+      <div class="breakdown-grid-half">
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Visits by network</span></div><div id="ov-network-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">FTDs by network</span></div><div id="ov-network-ftds"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
     <!-- CAMPAIGNS -->
-    <div class="panel" id="panel-campaigns">
-      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="breakdown-card"><h3>Visits by Campaign</h3><div id="camp-visits"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>Registrations by Campaign</h3><div id="camp-regs"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>FTDs by Campaign</h3><div id="camp-ftds"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>Visits by Landing Page</h3><div id="lp-visits"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>Registrations by Landing Page</h3><div id="lp-regs"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>FTDs by Landing Page</h3><div id="lp-ftds"><div class="empty">No data yet</div></div></div>
+    <div class="panel" id="panel-campaigns" style="margin-top:4px;">
+      <div class="breakdown-grid-half">
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Visits by campaign</span></div><div id="camp-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Registrations by campaign</span></div><div id="camp-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">FTDs by campaign</span></div><div id="camp-ftds"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Visits by landing page</span></div><div id="lp-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Registrations by landing page</span></div><div id="lp-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">FTDs by landing page</span></div><div id="lp-ftds"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
     <!-- ZONES -->
-    <div class="panel" id="panel-zones">
+    <div class="panel" id="panel-zones" style="margin-top:4px;">
       <div class="breakdown-grid">
-        <div class="breakdown-card"><h3>Visits by Zone</h3><div id="zone-visits"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>Registrations by Zone</h3><div id="zone-regs"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>FTDs by Zone</h3><div id="zone-ftds"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Visits by zone</span></div><div id="zone-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Registrations by zone</span></div><div id="zone-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">FTDs by zone</span></div><div id="zone-ftds"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
     <!-- EVENT LOG -->
-    <div class="panel" id="panel-events">
-      <div id="events-table"><div class="loading">loading...</div></div>
+    <div class="panel" id="panel-events" style="margin-top:4px;">
+      <div class="breakdown-card" style="padding:0;overflow:hidden;">
+        <div id="events-table"><div class="loading">loading...</div></div>
+      </div>
     </div>
 
     <!-- AUDIT -->
-    <div class="panel" id="panel-audit">
-      <div style="padding:20px">
-        <h2 style="margin:0 0 8px">Stats Audit</h2>
-        <p style="color:var(--muted);margin:0 0 20px">Compares dashboard totals against fresh Supabase count=exact queries. Refresh by clicking the Audit tab.</p>
+    <div class="panel" id="panel-audit" style="margin-top:4px;">
+      <div class="breakdown-card">
+        <div class="breakdown-header"><span class="breakdown-title">Stats Audit</span><span class="breakdown-total">Supabase count=exact verification</span></div>
         <div id="audit-table"><div class="loading">loading audit...</div></div>
       </div>
     </div>
 
     <!-- NETWORKS -->
-    <div class="panel" id="panel-networks">
-      <div style="margin-bottom:20px;">
-        <h2 style="margin:0 0 4px">Network Performance</h2>
-        <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Side-by-side comparison of Mondiad vs Propeller Ads for the selected date range.</p>
-      </div>
+    <div class="panel" id="panel-networks" style="margin-top:4px;">
+      <div style="margin-bottom:16px;"><div style="font:700 20px 'Hanken Grotesk';margin-bottom:4px;">Network Performance</div><div style="font:400 13px 'Hanken Grotesk';color:var(--muted)">Side-by-side comparison of Mondiad vs Propeller Ads.</div></div>
       <div class="net-compare-grid" id="net-compare"><div class="loading">loading...</div></div>
-      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="breakdown-card"><h3>Visits by Network</h3><div id="net-visits"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>Registrations by Network</h3><div id="net-regs"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>FTDs by Network</h3><div id="net-ftds"><div class="empty">No data yet</div></div></div>
+      <div class="breakdown-grid">
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Visits by network</span></div><div id="net-visits"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Registrations by network</span></div><div id="net-regs"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">FTDs by network</span></div><div id="net-ftds"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
     <!-- SEGMENTS -->
-    <div class="panel" id="panel-segments">
-      <div style="margin-bottom:20px;">
-        <h2 style="margin:0 0 4px">Retargeting Segments</h2>
-        <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Audience pools built from your Easybet GTM pixel. Updated in real time.</p>
-      </div>
+    <div class="panel" id="panel-segments" style="margin-top:4px;">
+      <div style="margin-bottom:16px;"><div style="font:700 20px 'Hanken Grotesk';margin-bottom:4px;">Retargeting Segments</div><div style="font:400 13px 'Hanken Grotesk';color:var(--muted)">Audience pools built from your Easybet GTM pixel.</div></div>
       <div class="seg-grid" id="seg-kpis"><div class="loading">loading...</div></div>
-      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="breakdown-card"><h3>By Category</h3><div id="seg-category"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>By Source</h3><div id="seg-source"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>By Device</h3><div id="seg-device"><div class="empty">No data yet</div></div></div>
+      <div class="breakdown-grid">
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">By category</span></div><div id="seg-category"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">By source</span></div><div id="seg-source"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">By device</span></div><div id="seg-device"><div class="empty">No data yet</div></div></div>
       </div>
-      <div class="breakdown-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="breakdown-card"><h3>Guest vs Registered Split</h3><div id="seg-segment"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><h3>Multi-Visit vs New Visitors</h3><div id="seg-multivisit"><div class="empty">No data yet</div></div></div>
+      <div class="breakdown-grid-half">
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Guest vs Registered</span></div><div id="seg-segment"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Multi-visit vs New</span></div><div id="seg-multivisit"><div class="empty">No data yet</div></div></div>
       </div>
     </div>
 
-    <!-- CLICK LOOKUP -->
-    <div class="panel" id="panel-lookup">
-      <div style="margin-bottom:20px;">
-        <h2 style="margin:0 0 4px">Click ID Lookup</h2>
-        <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">Paste any click ID to see the full visitor journey from visit through to FTD.</p>
-      </div>
+    <!-- LOOKUP -->
+    <div class="panel" id="panel-lookup" style="margin-top:4px;">
+      <div style="margin-bottom:16px;"><div style="font:700 20px 'Hanken Grotesk';margin-bottom:4px;">Click ID Lookup</div><div style="font:400 13px 'Hanken Grotesk';color:var(--muted)">Trace any click ID through its full journey.</div></div>
       <div class="lookup-box">
         <div class="lookup-input-row">
           <input class="lookup-input" id="lookup-input" placeholder="Paste click ID here..." onkeydown="if(event.key==='Enter')doLookup()"/>
@@ -442,128 +432,53 @@ tr:hover td{background:var(--surface);}
       </div>
     </div>
 
-    <!-- ADMIN / SETUP -->
-    <div class="panel" id="panel-admin">
-
-      <div class="alert" style="margin-bottom:28px">
-        <strong>BeMob destination URL — use this instead of your raw Easybet link</strong><br>
-        Replace your BeMob campaign destination URL with the visit tracker URL below (per brand/campaign).
-        This records every visit AND passes the click ID to Easybet. See Setup Guide below.
+    <!-- ADMIN -->
+    <div class="panel" id="panel-admin" style="margin-top:4px;">
+      <div class="admin-grid">
+        <div class="admin-card"><div class="admin-card-title">Active Brands</div><div id="admin-brand-list"><div class="loading">loading...</div></div><button class="add-brand-btn" style="margin-top:16px;width:100%;" onclick="openAddBrand()">+ Add new brand</button></div>
+        <div class="admin-card"><div class="admin-card-title">Postback URLs — send to affiliate team</div><div id="admin-postbacks"><div class="empty">No brands yet</div></div></div>
       </div>
-
-      <div class="admin-grid" style="margin-bottom:28px;">
-        <div class="admin-card">
-          <h3>Active Brands</h3>
-          <div id="admin-brand-list"><div class="loading">loading...</div></div>
-          <button class="add-brand-btn" style="margin-top:16px;width:100%;" onclick="openAddBrand()">+ Add new brand</button>
-        </div>
-        <div class="admin-card">
-          <h3>Brand Postback URLs — send to affiliate team</h3>
-          <div id="admin-postbacks"><div class="empty">No brands yet</div></div>
-        </div>
+      <div class="admin-grid">
+        <div class="admin-card"><div class="admin-card-title">Dashboard Users</div><div id="admin-users-list"><div class="loading">loading...</div></div><button class="add-brand-btn" style="margin-top:16px;width:100%;" onclick="openAddUser()">+ Add user</button></div>
+        <div class="admin-card"><div class="admin-card-title">User Access Info</div><p style="font:400 12px 'Hanken Grotesk';color:var(--ink2);line-height:1.8;">Admin users can add/remove brands, users and access all settings.<br><br>Viewer users can see all data but cannot make changes.<br><br>Passwords are stored as plain text — keep them simple and dashboard-specific.</p></div>
       </div>
-
-      <!-- USERS SECTION -->
-      <div class="admin-grid" style="margin-bottom:28px;">
-        <div class="admin-card">
-          <h3>Dashboard Users</h3>
-          <div id="admin-users-list"><div class="loading">loading...</div></div>
-          <button class="add-brand-btn" style="margin-top:16px;width:100%;" onclick="openAddUser()">+ Add user</button>
-        </div>
-        <div class="admin-card">
-          <h3>User Access Info</h3>
-          <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);line-height:1.8;">
-            Admin users can add/remove brands, users and access all settings.<br><br>
-            Viewer users can see all data but cannot make changes.<br><br>
-            Share login credentials securely — passwords are stored as plain text so keep them simple and dashboard-specific.
-          </p>
-        </div>
-      </div>
-
-      <div class="admin-card" style="margin-bottom:28px;">
-        <h3>Setup Guide — how to wire everything up</h3>
+      <div class="admin-card">
+        <div class="admin-card-title">Setup Guide</div>
         <div style="margin-top:16px;">
-          <div class="setup-step">
-            <div class="step-num">1</div>
-            <div class="step-body">
-              <h4>Propeller Ads Campaign URL</h4>
-              <p>Use this as your Propeller Ads destination URL:<br><code>https://bettrev-media.vercel.app/api/visit?brand=easybet&cid={SUBID}&s1={ZONEID}&campaign_id={CAMPAIGN_ID}&network=propeller&dest=https://ebpartners.click/o/lWk0jB?lpage=_HWky_</code></p>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">2</div>
-            <div class="step-body">
-              <h4>Send postback URLs to Easybet</h4>
-              <p>Copy the Registration, FTD and Deposit postback URLs from the panel above and send them to your Easybet affiliate contact. They plug these into their system. When a player converts, Easybet fires back to your tracker automatically.</p>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">3</div>
-            <div class="step-body">
-              <h4>Network postbacks are automatic</h4>
-              <p>When an FTD postback is received, this tracker detects whether the click came from Mondiad or Propeller Ads and fires back to the correct network automatically.</p>
-            </div>
-          </div>
-          <div class="setup-step">
-            <div class="step-num">4</div>
-            <div class="step-body">
-              <h4>Adding a new brand</h4>
-              <p>Click <strong>+ Add brand</strong> in the sidebar. Fill in name, slug (e.g. <code>hollywoodbets</code>), currency (ZAR, USD, EUR), pick a colour. Postback URLs are generated instantly.</p>
-            </div>
-          </div>
+          <div class="setup-step"><div class="step-num">1</div><div class="step-body"><h4>Propeller Ads Campaign URL</h4><p>Destination URL: <code>https://bettrev-media.vercel.app/api/visit?brand=easybet&cid={SUBID}&s1={ZONEID}&campaign_id={CAMPAIGN_ID}&network=propeller&dest=https://ebpartners.click/o/lWk0jB?lpage=_HWky_</code></p></div></div>
+          <div class="setup-step"><div class="step-num">2</div><div class="step-body"><h4>Postbacks are already live with Easybet</h4><p>Easybet fires registration, FTD and deposit postbacks automatically. The tracker detects the network and fires to Propeller Ads or Mondiad accordingly.</p></div></div>
+          <div class="setup-step"><div class="step-num">3</div><div class="step-body"><h4>Adding a new brand</h4><p>Click <strong>+ Add brand</strong> in the sidebar. Postback URLs are generated instantly.</p></div></div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
 
-<!-- ADD BRAND MODAL -->
+<!-- BRAND MODAL -->
 <div class="modal-overlay" id="brand-modal">
   <div class="modal">
     <h2>Add Brand</h2>
     <p>Each brand gets its own colour-coded tracking, postback URLs and reports.</p>
-    <label>Brand Name</label>
-    <input type="text" id="brand-name" placeholder="e.g. Hollywoodbets" oninput="autoSlug()"/>
-    <label>Slug (used in postback URL — no spaces)</label>
-    <input type="text" id="brand-slug" placeholder="e.g. hollywoodbets"/>
+    <label>Brand Name</label><input type="text" id="brand-name" placeholder="e.g. Hollywoodbets" oninput="autoSlug()"/>
+    <label>Slug</label><input type="text" id="brand-slug" placeholder="e.g. hollywoodbets"/>
     <label>Currency</label>
-    <select id="brand-currency">
-      <option value="ZAR">ZAR — South African Rand</option>
-      <option value="USD">USD — US Dollar</option>
-      <option value="EUR">EUR — Euro</option>
-      <option value="GBP">GBP — British Pound</option>
-      <option value="NGN">NGN — Nigerian Naira</option>
-      <option value="KES">KES — Kenyan Shilling</option>
-    </select>
-    <label>Colour</label>
-    <div class="color-row" id="color-row"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveBrand()">Save Brand</button>
-    </div>
+    <select id="brand-currency"><option value="ZAR">ZAR — South African Rand</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="NGN">NGN</option><option value="KES">KES</option></select>
+    <label>Colour</label><div class="color-row" id="color-row"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" onclick="saveBrand()">Save Brand</button></div>
   </div>
 </div>
 
-<!-- ADD USER MODAL -->
+<!-- USER MODAL -->
 <div class="modal-overlay" id="user-modal">
   <div class="modal">
     <h2>Add User</h2>
     <p>Add a team member who can access this dashboard.</p>
-    <label>Full Name</label>
-    <input type="text" id="user-name" placeholder="e.g. John Smith"/>
-    <label>Email</label>
-    <input type="email" id="user-email" placeholder="e.g. john@example.com"/>
-    <label>Password</label>
-    <input type="text" id="user-password" placeholder="Set a simple dashboard password"/>
+    <label>Full Name</label><input type="text" id="user-name" placeholder="e.g. John Smith"/>
+    <label>Email</label><input type="email" id="user-email" placeholder="e.g. john@example.com"/>
+    <label>Password</label><input type="text" id="user-password" placeholder="Set a simple dashboard password"/>
     <label>Role</label>
-    <select id="user-role">
-      <option value="viewer">Viewer — can see all data, no changes</option>
-      <option value="admin">Admin — full access including settings</option>
-    </select>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeUserModal()">Cancel</button>
-      <button class="btn-save" onclick="saveUser()">Save User</button>
-    </div>
+    <select id="user-role"><option value="viewer">Viewer — can see all data, no changes</option><option value="admin">Admin — full access including settings</option></select>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeUserModal()">Cancel</button><button class="btn-save" onclick="saveUser()">Save User</button></div>
   </div>
 </div>
 
@@ -588,13 +503,13 @@ async function doLogin(){
   if(users&&users.length>0){
     currentUser=users[0];
     document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
+    document.getElementById('app').classList.add('visible');
     sessionStorage.setItem('auth',JSON.stringify({email:e,pw:p}));
     init(sessionStorage.getItem('lastBrand')||'__all__');
   }else{document.getElementById('login-error').style.display='block';}
 }
 document.getElementById('login-password').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
-function doLogout(){sessionStorage.removeItem('auth');document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';if(timer)clearInterval(timer);currentUser=null;}
+function doLogout(){sessionStorage.removeItem('auth');document.getElementById('login-screen').style.display='flex';document.getElementById('app').classList.remove('visible');if(timer)clearInterval(timer);currentUser=null;}
 
 // Auto-login from session
 (async function(){
@@ -607,7 +522,7 @@ function doLogout(){sessionStorage.removeItem('auth');document.getElementById('l
       if(users&&users.length>0){
         currentUser=users[0];
         document.getElementById('login-screen').style.display='none';
-        document.getElementById('app').style.display='block';
+        document.getElementById('app').classList.add('visible');
         init(sessionStorage.getItem('lastBrand')||'__all__');
       }
     }catch(e){}
@@ -693,9 +608,16 @@ function render(data){
   document.getElementById('m-rf').textContent=visits>0?((ftds/visits)*100).toFixed(1)+'%':'\u2014';
   var fp=rows.filter(function(d){return d.event_type==='ftd';}).reduce(function(s,d){return s+(d.payout||0);},0);
   document.getElementById('m-ftds-sub').textContent=fp>0?cur+' '+fp.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' earned':'first deposits';
-  rdRpc('ov-zone-regs',data.zoneRegs,'zone');
-  rdRpc('ov-zone-ftds',data.zoneFtds,'zone');
-  bd('ov-brand-ftds',rows.filter(function(d){return d.event_type==='ftd';}),'brand');
+  // Overview — use design-spec components
+  rdRpcZoneTable('ov-zone-regs',data.zoneRegs,data.zoneFtds);
+  rdRpcZoneMini('ov-zone-ftds',data.zoneFtds,'zone');
+  rdRpcBrandBars('ov-brand-ftds',rows.filter(function(d){return d.event_type==='ftd';}),'brand');
+  // Network breakdowns
+  bdNetwork('ov-network-visits',rows.filter(function(d){return d.event_type==='visit';}));
+  bdNetwork('ov-network-ftds',rows.filter(function(d){return d.event_type==='ftd';}));
+  // Update totals
+  var zrEl=document.getElementById('ov-zone-regs-total');if(zrEl)zrEl.textContent=regs>0?regs.toLocaleString()+' total':'—';
+  var bfEl=document.getElementById('ov-brand-ftds-total');if(bfEl)bfEl.textContent=ftds>0?ftds.toLocaleString()+' total':'—';
   rdRpc('camp-visits',data.campVisits,'campaign');
   rdRpc('camp-regs',data.campRegs,'campaign');
   rdRpc('camp-ftds',data.campFtds,'campaign');
@@ -737,7 +659,7 @@ function rLog(data){
     var z=d.zone_id&&UUID_RE.test(String(d.zone_id))?'\u2014':(d.zone_id||'\u2014');
     var net=d.network||'unknown';
     var netColor=net==='mondiad'?'#7b7fff':net==='propeller'?'#ff6b47':'var(--muted)';
-    html+='<tr><td>'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</td><td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td><td style="font-family:\'DM Mono\',monospace;font-size:10px;color:'+netColor+'">'+net+'</td><td>'+(d.brand||'\u2014')+'</td><td>'+z+'</td><td>'+(d.campaign_id||'\u2014')+'</td><td>'+(d.landing_page||'\u2014')+'</td><td>'+(d.country||'\u2014')+'</td><td>'+(d.payout>0?c2+' '+Number(d.payout).toFixed(2):'\u2014')+'</td></tr>';
+    html+='<tr><td style="font:500 12px \'IBM Plex Mono\';color:var(--muted)">'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</td><td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td><td><span class="net-badge '+net+'">'+net+'</span></td><td>'+(d.brand||'\u2014')+'</td><td>'+z+'</td><td>'+(d.campaign_id||'\u2014')+'</td><td>'+(d.landing_page||'\u2014')+'</td><td>'+(d.country||'\u2014')+'</td><td>'+(d.payout>0?c2+' '+Number(d.payout).toFixed(2):'\u2014')+'</td></tr>';
   });
   el.innerHTML=html+'</tbody></table>';
 }
@@ -974,7 +896,59 @@ async function rpcBreakdown(fn,brand,event_type,gte,lte){
   if(!res.ok){console.error('RPC '+fn+' failed:',res.status,await res.text());return[];}
   return await res.json();
 }
+
+// ===== NEW DESIGN RENDER FUNCTIONS =====
+function rdRpcZoneTable(id,regRows,ftdRows){
+  var el=document.getElementById(id);if(!el)return;
+  if(!regRows||!regRows.length){el.innerHTML='<div class="empty">No data yet</div>';return;}
+  var max=regRows[0].n,tot=regRows.reduce(function(s,r){return s+r.n;},0),ftdMap={};
+  if(ftdRows)ftdRows.forEach(function(r){ftdMap[r.zone]=r.n;});
+  var html='';
+  regRows.slice(0,8).forEach(function(row){
+    var k=String(row.zone),v=row.n;
+    var pct=Math.round(v/max*100),share=(v/tot*100).toFixed(1)+'%',ftd=ftdMap[k]?ftdMap[k].toLocaleString():'—';
+    html+='<div class="zone-row"><span class="zone-name">'+k+'</span><div class="bar-track" style="height:7px"><div class="bar-fill" style="width:'+pct+'%;background:var(--fill)"></div></div><span class="zone-count">'+v.toLocaleString()+'</span><span class="zone-share">'+share+'</span><span class="zone-ftd">'+ftd+'</span></div>';
+  });
+  el.innerHTML=html;
+}
+function rdRpcBrandBars(id,events,field){
+  var el=document.getElementById(id);if(!el)return;
+  if(!events.length){el.innerHTML='<div class="empty">No data yet</div>';return;}
+  var counts={};events.forEach(function(e){var k=e[field]||'(none)';counts[k]=(counts[k]||0)+1;});
+  var sorted=Object.entries(counts).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
+  if(!sorted.length){el.innerHTML='<div class="empty">No data yet</div>';return;}
+  var max=sorted[0][1],tot=sorted.reduce(function(s,x){return s+x[1];},0),html='';
+  sorted.forEach(function(item){
+    var k=item[0],v=item[1],pct=Math.round(v/max*100),share=(v/tot*100).toFixed(1)+'%';
+    html+='<div class="brand-bar-row"><div class="brand-bar-labels"><span class="brand-bar-name">'+k+'</span><span><span class="brand-bar-count">'+v.toLocaleString()+'</span><span class="brand-bar-share">'+share+'</span></span></div><div class="bar-track" style="height:8px"><div class="bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>';
+  });
+  el.innerHTML=html;
+}
+function rdRpcZoneMini(id,rows,kf){
+  var el=document.getElementById(id);if(!el)return;
+  if(!rows||!rows.length){el.innerHTML='<div class="empty">No data yet</div>';return;}
+  var max=rows[0].n,html='';
+  rows.slice(0,8).forEach(function(row){
+    var k=String(row[kf]),v=row.n,pct=Math.round(v/max*100);
+    html+='<div class="zone-mini-row"><span class="zone-mini-name">'+k+'</span><div class="zone-mini-right"><div class="bar-track" style="width:84px;height:6px"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="zone-mini-count">'+v.toLocaleString()+'</span></div></div>';
+  });
+  el.innerHTML=html;
+}
+function bdNetwork(id,events){
+  var el=document.getElementById(id);if(!el)return;
+  if(!events.length){el.innerHTML='<div class="empty">No data yet</div>';return;}
+  var counts={};events.forEach(function(e){var k=e.network||'unknown';counts[k]=(counts[k]||0)+1;});
+  var sorted=Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
+  var max=sorted[0][1],html='';
+  sorted.forEach(function(item){
+    var k=item[0],v=item[1],color=k==='mondiad'?'#6366f1':k==='propeller'?'#ef4444':'#9a9a92';
+    html+='<div class="breakdown-row"><span class="breakdown-key"><span class="net-badge '+k+'">'+k+'</span></span><span class="breakdown-val">'+v.toLocaleString()+'</span></div><div class="bar-track" style="height:5px;margin-bottom:8px"><div class="bar-fill" style="width:'+Math.round(v/max*100)+'%;background:'+color+'"></div></div>';
+  });
+  el.innerHTML=html;
+}
+
 async function sb(path,opts){opts=opts||{};return fetch(SB_URL+path,Object.assign({},opts,{headers:Object.assign({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},opts.headers||{})}));}
 </script>
 </body>
 </html>
+</body></html>
