@@ -749,23 +749,29 @@ async function loadNetworks(){
 async function loadSegments(){
   var el=document.getElementById('seg-kpis');
   el.innerHTML='<div class="loading" style="grid-column:1/-1">loading segments...</div>';
-  // Fetch segment counts from retargeting_visitors table
-  async function segCount(filter){
-    var r=await sb('/rest/v1/retargeting_visitors?select=*'+filter+'&limit=1',{headers:{'Prefer':'count=exact'}});
-    var cr=r.headers.get('content-range');if(!cr)return 0;var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);
+
+  // Use same date range as rest of dashboard
+  var p=dp(currentRange);
+  var gte=p.gte||null,lte=p.lte||null;
+  var df=(gte?'&created_at=gte.'+gte:'')+(lte?'&created_at=lte.'+lte:'');
+
+  async function sc(filter){
+    var r=await fetch(SB_URL+'/rest/v1/retargeting_visitors?select=*'+filter+df+'&limit=1',
+      {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Prefer':'count=exact'}});
+    var cr=r.headers.get('content-range');if(!cr)return 0;
+    var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);
   }
-  var total=await segCount('');
-  var guests=await segCount('&segment=eq.guest');
-  var registered=await segCount('&segment=eq.registered');
-  var multiVisit=await segCount('&is_multi_visit=eq.true&segment=eq.guest');
-  var aviator=await segCount('&category=eq.aviator');
-  var casino=await segCount('&category=eq.casino');
-  var promo=await segCount('&category=eq.promotion');
-  var fromGoogle=await segCount('&source=eq.google');
-  // KPI cards — multiply by 10 since we sample at 10%
-  var mult=10;
+
+  var mult=20; // 5% sampling = 20x multiplier
+
+  // KPI counts
+  var total=await sc('');
+  var guests=await sc('&segment=eq.guest');
+  var multiVisit=await sc('&is_multi_visit=eq.true&segment=eq.guest');
+  var fromGoogle=await sc('&source=eq.google');
+
   var kpis=[
-    {label:'Total Audience',val:(total*mult).toLocaleString(),sub:'est. unique visitors (10% sample)'},
+    {label:'Total Audience',val:(total*mult).toLocaleString(),sub:'est. unique visitors (5% sample)'},
     {label:'Guest Visitors',val:(guests*mult).toLocaleString(),sub:'unregistered — FTD retargeting pool'},
     {label:'Multi-Visit Guests',val:(multiVisit*mult).toLocaleString(),sub:'returned without registering'},
     {label:'Google-Referred',val:(fromGoogle*mult).toLocaleString(),sub:'highest intent segment'},
@@ -773,43 +779,48 @@ async function loadSegments(){
   var html='';
   kpis.forEach(function(k){html+='<div class="seg-card"><div class="seg-label">'+k.label+'</div><div class="seg-value">'+k.val+'</div><div class="seg-sub">'+k.sub+'</div></div>';});
   el.innerHTML=html;
-  // Fetch breakdown data
-  var r=await sb('/rest/v1/retargeting_visitors?select=category,source,device_type,segment,is_multi_visit&limit=50000');
-  var rows=await r.json();
-  if(!Array.isArray(rows)||!rows.length){['seg-category','seg-source','seg-device','seg-segment','seg-multivisit'].forEach(function(id){document.getElementById(id).innerHTML='<div class="empty">No data yet</div>';});return;}
-  function groupBy(field,colors2){
-    var counts={};
-    rows.forEach(function(r2){var k=r2[field]||'unknown';counts[k]=(counts[k]||0)+1;});
-    var sorted=Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
-    var tot=sorted.reduce(function(s,x){return s+x[1];},0);
-    var max=sorted[0]?sorted[0][1]:1;
-    var html='';
-    sorted.forEach(function(item,i){
-      var k=item[0],v=item[1]*mult;
-      var pct=(item[1]/tot*100).toFixed(1);
-      var color=colors2&&colors2[k]?colors2[k]:'var(--brand-color)';
-      html+='<div class="seg-bar-row"><span class="seg-bar-label">'+k+'</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(item[1]/max*100)+'%;background:'+color+'"></div></div><span class="seg-bar-val">'+v.toLocaleString()+'</span><span class="seg-bar-pct">'+pct+'%</span></div>';
-    });
-    return html||'<div class="empty">No data</div>';
-  }
-  var catColors={aviator:'#e8ff47',casino:'#47ffb2',promotion:'#ff9f47',sports:'#7b7fff',general:'#555'};
-  var srcColors={google:'#47d4ff',facebook:'#7b7fff',instagram:'#ff47b2',twitter:'#47ffb2',tiktok:'#ff9f47',direct:'#888',other:'#555'};
-  var devColors={mobile:'#e8ff47',desktop:'#7b7fff'};
-  var segColors={guest:'#e8ff47',registered:'#47ffb2'};
-  document.getElementById('seg-category').innerHTML=groupBy('category',catColors);
-  document.getElementById('seg-source').innerHTML=groupBy('source',srcColors);
-  document.getElementById('seg-device').innerHTML=groupBy('device_type',devColors);
-  document.getElementById('seg-segment').innerHTML=groupBy('segment',segColors);
-  // Multi-visit
-  var mvCount=rows.filter(function(r2){return r2.is_multi_visit&&r2.segment==='guest';}).length;
-  var nvCount=rows.filter(function(r2){return !r2.is_multi_visit&&r2.segment==='guest';}).length;
-  var mvMax=Math.max(mvCount,nvCount,1);
-  document.getElementById('seg-multivisit').innerHTML=
-    '<div class="seg-bar-row"><span class="seg-bar-label">Multi-visit</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(mvCount/mvMax*100)+'%;background:#e8ff47"></div></div><span class="seg-bar-val">'+(mvCount*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((mvCount/(mvCount+nvCount||1))*100).toFixed(1)+'%</span></div>'+
-    '<div class="seg-bar-row"><span class="seg-bar-label">New visitor</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(nvCount/mvMax*100)+'%;background:#555"></div></div><span class="seg-bar-val">'+(nvCount*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((nvCount/(mvCount+nvCount||1))*100).toFixed(1)+'%</span></div>';
-}
 
-// ===== CLICK LOOKUP =====
+  // Category breakdown
+  var cats=['general','promotion','casino','sports','aviator'];
+  var catColors={aviator:'#84cc16',casino:'#22c55e',promotion:'#f97316',sports:'#6366f1',general:'#374151'};
+  var catCounts=await Promise.all(cats.map(function(c){return sc('&category=eq.'+c);}));
+  var catTot=catCounts.reduce(function(s,v){return s+v;},0)||1,catMax=Math.max.apply(null,catCounts.concat([1]));
+  document.getElementById('seg-category').innerHTML=cats.map(function(c,i){
+    var v=catCounts[i];if(!v)return '';
+    return '<div class="seg-bar-row"><span class="seg-bar-label">'+c+'</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(v/catMax*100)+'%;background:'+(catColors[c]||'#9a9a92')+'"></div></div><span class="seg-bar-val">'+(v*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((v/catTot)*100).toFixed(1)+'%</span></div>';
+  }).filter(Boolean).join('')||'<div class="empty">No data yet</div>';
+
+  // Source breakdown
+  var srcs=['direct','twitter','other','google','facebook','instagram','tiktok'];
+  var srcColors={google:'#0ea5e9',facebook:'#6366f1',instagram:'#ec4899',twitter:'#22c55e',tiktok:'#f97316',direct:'#6b7280',other:'#374151'};
+  var srcCounts=await Promise.all(srcs.map(function(s){return sc('&source=eq.'+s);}));
+  var srcTot=srcCounts.reduce(function(s,v){return s+v;},0)||1,srcMax=Math.max.apply(null,srcCounts.concat([1]));
+  document.getElementById('seg-source').innerHTML=srcs.map(function(s,i){
+    var v=srcCounts[i];if(!v)return '';
+    return '<div class="seg-bar-row"><span class="seg-bar-label">'+s+'</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(v/srcMax*100)+'%;background:'+(srcColors[s]||'#9a9a92')+'"></div></div><span class="seg-bar-val">'+(v*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((v/srcTot)*100).toFixed(1)+'%</span></div>';
+  }).filter(Boolean).join('')||'<div class="empty">No data yet</div>';
+
+  // Device breakdown
+  var devM=await sc('&device_type=eq.mobile'),devD=await sc('&device_type=eq.desktop');
+  var devMax=Math.max(devM,devD,1),devTot=devM+devD||1;
+  document.getElementById('seg-device').innerHTML=
+    '<div class="seg-bar-row"><span class="seg-bar-label">mobile</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(devM/devMax*100)+'%;background:#84cc16"></div></div><span class="seg-bar-val">'+(devM*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((devM/devTot)*100).toFixed(1)+'%</span></div>'+
+    '<div class="seg-bar-row"><span class="seg-bar-label">desktop</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(devD/devMax*100)+'%;background:#6366f1"></div></div><span class="seg-bar-val">'+(devD*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((devD/devTot)*100).toFixed(1)+'%</span></div>';
+
+  // Guest vs Registered
+  var segG=await sc('&segment=eq.guest'),segR=await sc('&segment=eq.registered');
+  var segMax=Math.max(segG,segR,1),segTot=segG+segR||1;
+  document.getElementById('seg-segment').innerHTML=
+    '<div class="seg-bar-row"><span class="seg-bar-label">registered</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(segR/segMax*100)+'%;background:#22c55e"></div></div><span class="seg-bar-val">'+(segR*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((segR/segTot)*100).toFixed(1)+'%</span></div>'+
+    '<div class="seg-bar-row"><span class="seg-bar-label">guest</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(segG/segMax*100)+'%;background:#84cc16"></div></div><span class="seg-bar-val">'+(segG*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((segG/segTot)*100).toFixed(1)+'%</span></div>';
+
+  // Multi-visit vs New (guest only)
+  var mvC=await sc('&is_multi_visit=eq.true&segment=eq.guest'),nvC=await sc('&is_multi_visit=eq.false&segment=eq.guest');
+  var mvMax=Math.max(mvC,nvC,1),mvTot=mvC+nvC||1;
+  document.getElementById('seg-multivisit').innerHTML=
+    '<div class="seg-bar-row"><span class="seg-bar-label">Multi-visit</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(mvC/mvMax*100)+'%;background:#84cc16"></div></div><span class="seg-bar-val">'+(mvC*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((mvC/mvTot)*100).toFixed(1)+'%</span></div>'+
+    '<div class="seg-bar-row"><span class="seg-bar-label">New visitor</span><div class="seg-bar-track"><div class="seg-bar-fill" style="width:'+Math.round(nvC/mvMax*100)+'%;background:#374151"></div></div><span class="seg-bar-val">'+(nvC*mult).toLocaleString()+'</span><span class="seg-bar-pct">'+((nvC/mvTot)*100).toFixed(1)+'%</span></div>';
+}
 async function doLookup(){
   var cid=document.getElementById('lookup-input').value.trim();
   var el=document.getElementById('lookup-result');
