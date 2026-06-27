@@ -313,7 +313,6 @@ tr:hover td{background:var(--zebra);}
           <span style="color:#c2c2b8;font-family:'IBM Plex Mono';font-size:12px">→</span>
           <input type="date" id="date-to" onchange="setCustomRange()"/>
         </div>
-      </div>
         <select class="network-select" id="network-filter" onchange="loadData()">
           <option value="__all__">All Networks</option>
           <option value="mondiad">Mondiad</option>
@@ -961,24 +960,25 @@ function bdNetwork(id,events){
 }
 
 
-// Populate network dropdown dynamically from actual data
+// Populate network dropdown — always show Mondiad + Propeller, add any extras from data
 async function populateNetworks(){
   var sel=document.getElementById('network-filter');if(!sel)return;
-  var r=await sb('/rest/v1/conversions?select=network&limit=10000');
-  var rows=await r.json();
-  if(!Array.isArray(rows))return;
-  var nets=new Set();
-  rows.forEach(function(r){if(r.network)nets.add(r.network);});
-  // Rebuild options preserving current selection
-  var current=sel.value;
-  sel.innerHTML='<option value="__all__">All Networks</option>';
-  var labels={'mondiad':'Mondiad','propeller':'Propeller Ads'};
-  Array.from(nets).sort().forEach(function(n){
-    var opt=document.createElement('option');
-    opt.value=n;opt.textContent=labels[n]||n;
-    sel.appendChild(opt);
-  });
-  sel.value=current;
+  try{
+    var r=await sb('/rest/v1/conversions?select=network&limit=5000');
+    var rows=await r.json();
+    if(!Array.isArray(rows))return;
+    var nets=new Set(['mondiad','propeller']); // always include these
+    rows.forEach(function(row){if(row.network)nets.add(row.network);});
+    var current=sel.value;
+    sel.innerHTML='<option value="__all__">All Networks</option>';
+    var labels={'mondiad':'Mondiad','propeller':'Propeller Ads'};
+    Array.from(nets).sort().forEach(function(n){
+      var opt=document.createElement('option');
+      opt.value=n;opt.textContent=labels[n]||(n.charAt(0).toUpperCase()+n.slice(1));
+      sel.appendChild(opt);
+    });
+    if(current)sel.value=current;
+  }catch(e){console.error('populateNetworks error',e);}
 }
 
 async function sb(path,opts){opts=opts||{};return fetch(SB_URL+path,Object.assign({},opts,{headers:Object.assign({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},opts.headers||{})}));}
