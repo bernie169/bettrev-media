@@ -344,26 +344,34 @@ tr:hover td{background:var(--zebra);}
 
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
-      <div class="breakdown-grid-2" style="margin-top:4px;">
+      <div class="breakdown-grid" style="margin-top:4px;">
+        <div class="breakdown-card">
+          <div class="breakdown-header"><span class="breakdown-title">Visits by network</span></div>
+          <div id="ov-network-visits"><div class="empty">No data yet</div></div>
+        </div>
+        <div class="breakdown-card">
+          <div class="breakdown-header"><span class="breakdown-title">Registrations by network</span></div>
+          <div id="ov-network-regs"><div class="empty">No data yet</div></div>
+        </div>
+        <div class="breakdown-card">
+          <div class="breakdown-header"><span class="breakdown-title">FTDs by network</span></div>
+          <div id="ov-network-ftds"><div class="empty">No data yet</div></div>
+        </div>
+      </div>
+      <div class="breakdown-grid" style="margin-top:0;">
         <div class="breakdown-card">
           <div class="breakdown-header"><span class="breakdown-title">Registrations by zone</span><span class="breakdown-total" id="ov-zone-regs-total">—</span></div>
           <div class="zone-col-headers"><span>ZONE</span><span>SPLIT</span><span>REG</span><span>SHARE</span><span>FTDS</span></div>
           <div id="ov-zone-regs"><div class="empty">No data yet</div></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div class="breakdown-card" id="ov-brand-card">
-            <div class="breakdown-header"><span class="breakdown-title">FTDs by brand</span><span class="breakdown-total" id="ov-brand-ftds-total">—</span></div>
-            <div id="ov-brand-ftds"><div class="empty">No data yet</div></div>
-          </div>
-          <div class="breakdown-card">
-            <div class="breakdown-header"><span class="breakdown-title">FTDs by zone</span></div>
-            <div id="ov-zone-ftds"><div class="empty">No data yet</div></div>
-          </div>
+        <div class="breakdown-card">
+          <div class="breakdown-header"><span class="breakdown-title">FTDs by zone</span></div>
+          <div id="ov-zone-ftds"><div class="empty">No data yet</div></div>
         </div>
-      </div>
-      <div class="breakdown-grid-half">
-        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">Visits by network</span></div><div id="ov-network-visits"><div class="empty">No data yet</div></div></div>
-        <div class="breakdown-card"><div class="breakdown-header"><span class="breakdown-title">FTDs by network</span></div><div id="ov-network-ftds"><div class="empty">No data yet</div></div></div>
+        <div class="breakdown-card" id="ov-brand-card">
+          <div class="breakdown-header"><span class="breakdown-title">FTDs by brand</span><span class="breakdown-total" id="ov-brand-ftds-total">—</span></div>
+          <div id="ov-brand-ftds"><div class="empty">No data yet</div></div>
+        </div>
       </div>
     </div>
 
@@ -624,9 +632,13 @@ function render(data){
   rdRpcZoneTable('ov-zone-regs',data.zoneRegs,data.zoneFtds);
   rdRpcZoneMini('ov-zone-ftds',data.zoneFtds,'zone');
   rdRpcBrandBars('ov-brand-ftds',rows.filter(function(d){return d.event_type==='ftd';}),'brand');
-  // Network breakdowns
-  bdNetwork('ov-network-visits',rows.filter(function(d){return d.event_type==='visit';}));
-  bdNetwork('ov-network-ftds',rows.filter(function(d){return d.event_type==='ftd';}));
+  // Network breakdowns — filter out bot visits (no click_id and no zone_id)
+  var realVisits=rows.filter(function(d){return d.event_type==='visit'&&(d.click_id||d.zone_id);});
+  var realRegs=rows.filter(function(d){return d.event_type==='registration';});
+  var realFtds=rows.filter(function(d){return d.event_type==='ftd';});
+  bdNetwork('ov-network-visits',realVisits);
+  bdNetwork('ov-network-regs',realRegs);
+  bdNetwork('ov-network-ftds',realFtds);
   // Update totals
   var zrEl=document.getElementById('ov-zone-regs-total');if(zrEl)zrEl.textContent=regs>0?regs.toLocaleString()+' total':'—';
   var bfEl=document.getElementById('ov-brand-ftds-total');if(bfEl)bfEl.textContent=ftds>0?ftds.toLocaleString()+' total':'—';
@@ -664,6 +676,8 @@ function rdRpc(id,rows,keyField){
 
 function rLog(data){
   var el=document.getElementById('events-table');if(!el)return;
+  // Filter out bot/empty visits — must have click_id OR zone_id OR not be a visit
+  data=data.filter(function(d){return d.event_type!=='visit'||(d.click_id||d.zone_id);});
   if(!data.length){el.innerHTML='<div class="empty">No events in this date range</div>';return;}
   var html='<table><thead><tr><th>Time</th><th>Event</th><th>Network</th><th>Brand</th><th>Click ID</th><th>Zone</th><th>Campaign</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
   data.forEach(function(d){
