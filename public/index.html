@@ -506,33 +506,16 @@ function dp(r){if(r==='today')return{gte:sm(0),lte:sm(1)};if(r==='yesterday')ret
 async function doLogin(){
   const e=document.getElementById('login-email').value.trim();
   const p=document.getElementById('login-password').value;
-  // Hardcoded fallback credentials
-  const hardcoded=[
-    {email:'tsbernberg@gmail.com',password:'Chutney1!',role:'admin',name:'Trevor'}
-  ];
-  const hc=hardcoded.find(function(u){return u.email===e&&u.password===p;});
-  if(hc){
-    currentUser=hc;
+  // Check against dashboard_users table
+  const r=await fetch(SB_URL+'/rest/v1/dashboard_users?email=eq.'+encodeURIComponent(e)+'&password=eq.'+encodeURIComponent(p)+'&active=eq.true&select=*&limit=1',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+  const users=await r.json();
+  if(users&&users.length>0){
+    currentUser=users[0];
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').classList.add('visible');
     sessionStorage.setItem('auth',JSON.stringify({email:e,pw:p}));
     init(sessionStorage.getItem('lastBrand')||'__all__');
-    return;
-  }
-  // Try DB login
-  try{
-    const r=await fetch(SB_URL+'/rest/v1/dashboard_users?email=eq.'+encodeURIComponent(e)+'&password=eq.'+encodeURIComponent(p)+'&active=eq.true&select=*&limit=1',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-    const users=await r.json();
-    if(users&&users.length>0){
-      currentUser=users[0];
-      document.getElementById('login-screen').style.display='none';
-      document.getElementById('app').classList.add('visible');
-      sessionStorage.setItem('auth',JSON.stringify({email:e,pw:p}));
-      init(sessionStorage.getItem('lastBrand')||'__all__');
-      return;
-    }
-  }catch(err){console.error('DB login failed:',err);}
-  document.getElementById('login-error').style.display='block';
+  }else{document.getElementById('login-error').style.display='block';}
 }
 document.getElementById('login-password').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 function doLogout(){sessionStorage.removeItem('auth');document.getElementById('login-screen').style.display='flex';document.getElementById('app').classList.remove('visible');if(timer)clearInterval(timer);currentUser=null;}
@@ -543,15 +526,6 @@ function doLogout(){sessionStorage.removeItem('auth');document.getElementById('l
   if(saved){
     try{
       const {email,pw}=JSON.parse(saved);
-      const hardcoded=[{email:'tsbernberg@gmail.com',password:'Chutney1!',role:'admin',name:'Trevor'}];
-      const hc=hardcoded.find(function(u){return u.email===email&&u.password===pw;});
-      if(hc){
-        currentUser=hc;
-        document.getElementById('login-screen').style.display='none';
-        document.getElementById('app').classList.add('visible');
-        init(sessionStorage.getItem('lastBrand')||'__all__');
-        return;
-      }
       const r=await fetch(SB_URL+'/rest/v1/dashboard_users?email=eq.'+encodeURIComponent(email)+'&password=eq.'+encodeURIComponent(pw)+'&active=eq.true&select=*&limit=1',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
       const users=await r.json();
       if(users&&users.length>0){
@@ -788,7 +762,7 @@ async function loadSegments(){
     var t=cr.split('/')[1];return(!t||t==='*')?0:(parseInt(t)||0);
   }
 
-  var mult=20; // 5% sampling = 20x multiplier
+  var mult=1; // 100% sampling = no multiplier
 
   // KPI counts
   var total=await sc('');
@@ -797,7 +771,7 @@ async function loadSegments(){
   var fromGoogle=await sc('&source=eq.google');
 
   var kpis=[
-    {label:'Total Audience',val:(total*mult).toLocaleString(),sub:'est. unique visitors (5% sample)'},
+    {label:'Total Audience',val:(total*mult).toLocaleString(),sub:'unique visitor sessions'},
     {label:'Guest Visitors',val:(guests*mult).toLocaleString(),sub:'unregistered — FTD retargeting pool'},
     {label:'Multi-Visit Guests',val:(multiVisit*mult).toLocaleString(),sub:'returned without registering'},
     {label:'Google-Referred',val:(fromGoogle*mult).toLocaleString(),sub:'highest intent segment'},
