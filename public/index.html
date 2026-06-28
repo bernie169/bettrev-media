@@ -938,9 +938,11 @@ function rdRpcZoneTable(id,regRows,ftdRows){
   if(ftdRows)ftdRows.forEach(function(r){ftdMap[r.zone]=r.n;});
   var html='';
   regRows.slice(0,8).forEach(function(row){
-    var k=String(row.zone),v=row.n;
+    var k=String(row.zone);
+    var label=(!k||k==='null'||k==='undefined')?'Unattributed':(k.length>30?'Zone '+k.substring(0,8)+'…':k);
+    var v=row.n;
     var pct=Math.round(v/max*100),share=(v/tot*100).toFixed(1)+'%',ftd=ftdMap[k]?ftdMap[k].toLocaleString():'—';
-    html+='<div class="zone-row"><span class="zone-name">'+k+'</span><div class="bar-track" style="height:7px"><div class="bar-fill" style="width:'+pct+'%;background:var(--fill)"></div></div><span class="zone-count">'+v.toLocaleString()+'</span><span class="zone-share">'+share+'</span><span class="zone-ftd">'+ftd+'</span></div>';
+    html+='<div class="zone-row"><span class="zone-name">'+label+'</span><div class="bar-track" style="height:7px"><div class="bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div><span class="zone-count">'+v.toLocaleString()+'</span><span class="zone-share">'+share+'</span><span class="zone-ftd">'+ftd+'</span></div>';
   });
   el.innerHTML=html;
 }
@@ -953,7 +955,7 @@ function rdRpcBrandBars(id,events,field){
   var max=sorted[0][1],tot=sorted.reduce(function(s,x){return s+x[1];},0),html='';
   sorted.forEach(function(item){
     var k=item[0],v=item[1],pct=Math.round(v/max*100),share=(v/tot*100).toFixed(1)+'%';
-    html+='<div class="brand-bar-row"><div class="brand-bar-labels"><span class="brand-bar-name">'+k+'</span><span><span class="brand-bar-count">'+v.toLocaleString()+'</span><span class="brand-bar-share">'+share+'</span></span></div><div class="bar-track" style="height:8px"><div class="bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>';
+    html+='<div class="brand-bar-row"><div class="brand-bar-labels"><span class="brand-bar-name">'+k+'</span><span><span class="brand-bar-count">'+v.toLocaleString()+'</span><span class="brand-bar-share" style="color:var(--muted);font-size:11px;margin-left:6px">'+share+'</span></span></div><div class="bar-track" style="height:7px;margin-top:6px"><div class="bar-fill" style="width:'+pct+'%;background:var(--fill)"></div></div></div>';
   });
   el.innerHTML=html;
 }
@@ -962,8 +964,11 @@ function rdRpcZoneMini(id,rows,kf){
   if(!rows||!rows.length){el.innerHTML='<div class="empty">No data yet</div>';return;}
   var max=rows[0].n,html='';
   rows.slice(0,8).forEach(function(row){
-    var k=String(row[kf]),v=row.n,pct=Math.round(v/max*100);
-    html+='<div class="zone-mini-row"><span class="zone-mini-name">'+k+'</span><div class="zone-mini-right"><div class="bar-track" style="width:84px;height:6px"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="zone-mini-count">'+v.toLocaleString()+'</span></div></div>';
+    var k=String(row[kf]);
+    // Clean up zone display - show numeric IDs, replace UUIDs/nulls
+    var label=(!k||k==='null'||k==='undefined')?'No zone':(k.length>30?'Zone '+k.substring(0,8)+'…':k);
+    var v=row.n,pct=Math.round(v/max*100);
+    html+='<div class="zone-mini-row"><span class="zone-mini-name">'+label+'</span><div class="zone-mini-right"><div class="bar-track" style="width:84px;height:6px"><div class="bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div><span class="zone-mini-count">'+v.toLocaleString()+'</span></div></div>';
   });
   el.innerHTML=html;
 }
