@@ -665,17 +665,27 @@ function rdRpc(id,rows,keyField){
 function rLog(data){
   var el=document.getElementById('events-table');if(!el)return;
   if(!data.length){el.innerHTML='<div class="empty">No events in this date range</div>';return;}
-  var html='<table><thead><tr><th>Time</th><th>Event</th><th>Network</th><th>Brand</th><th>Click ID</th><th>Zone</th><th>Campaign</th><th>LP</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th>Time</th><th>Event</th><th>Network</th><th>Brand</th><th>Click ID</th><th>Zone</th><th>Campaign</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
   data.forEach(function(d){
-    var dt=new Date(d.created_at),b2=brands.find(function(b){return b.slug===d.brand;}),c2=(b2&&b2.currency)||'ZAR';
-    var z=d.zone_id&&UUID_RE.test(String(d.zone_id))?'\u2014':(d.zone_id||'\u2014');
+    var dt=new Date(d.created_at);
+    var b2=brands.find(function(b){return b.slug===d.brand;}),c2=(b2&&b2.currency)||'ZAR';
+    var z=d.zone_id&&UUID_RE.test(String(d.zone_id))?'—':(d.zone_id||'—');
     var net=d.network||'unknown';
-    var netColor=net==='mondiad'?'#7b7fff':net==='propeller'?'#ff6b47':'var(--muted)';
-    html+='<tr><td style="font:500 12px \'IBM Plex Mono\';color:var(--muted)">'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</td><td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td><td><span class="net-badge '+net+'">'+net+'</span></td><td>'+(d.brand||'\u2014')+'</td><td>'+z+'</td><td>'+(d.campaign_id||'\u2014')+'</td><td>'+(d.landing_page||'\u2014')+'</td><td>'+(d.country||'\u2014')+'</td><td>'+(d.payout>0?c2+' '+Number(d.payout).toFixed(2):'\u2014')+'</td></tr>';
+    var cid=d.click_id?'<span style="font:500 10px \'IBM Plex Mono\';color:var(--ink2);max-width:90px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle" title="'+d.click_id+'">'+d.click_id+'</span>':'—';
+    html+='<tr>';
+    html+='<td style="font:500 11px \'IBM Plex Mono\';color:var(--muted)">'+dt.toLocaleDateString()+' '+dt.toLocaleTimeString()+'</td>';
+    html+='<td><span class="badge '+d.event_type+'">'+d.event_type+'</span></td>';
+    html+='<td><span class="net-badge '+net+'">'+net+'</span></td>';
+    html+='<td>'+(d.brand||'—')+'</td>';
+    html+='<td>'+cid+'</td>';
+    html+='<td>'+z+'</td>';
+    html+='<td>'+(d.campaign_id||'—')+'</td>';
+    html+='<td>'+(d.country||'—')+'</td>';
+    html+='<td>'+(d.payout>0?c2+' '+Number(d.payout).toFixed(2):'—')+'</td>';
+    html+='</tr>';
   });
   el.innerHTML=html+'</tbody></table>';
 }
-
 function showTab(name){document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});document.getElementById('panel-'+name).classList.add('active');document.getElementById('tab-btn-'+name).classList.add('active');}
 
 async function loadAudit(){
