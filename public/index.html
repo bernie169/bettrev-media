@@ -665,7 +665,7 @@ function rdRpc(id,rows,keyField){
 function rLog(data){
   var el=document.getElementById('events-table');if(!el)return;
   if(!data.length){el.innerHTML='<div class="empty">No events in this date range</div>';return;}
-  var html='<table><thead><tr><th>Time</th><th>Event</th><th>Network</th><th>Brand</th><th>Zone</th><th>Campaign</th><th>LP</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
+  var html='<table><thead><tr><th>Time</th><th>Event</th><th>Network</th><th>Brand</th><th>Click ID</th><th>Zone</th><th>Campaign</th><th>LP</th><th>Country</th><th>Payout</th></tr></thead><tbody>';
   data.forEach(function(d){
     var dt=new Date(d.created_at),b2=brands.find(function(b){return b.slug===d.brand;}),c2=(b2&&b2.currency)||'ZAR';
     var z=d.zone_id&&UUID_RE.test(String(d.zone_id))?'\u2014':(d.zone_id||'\u2014');
