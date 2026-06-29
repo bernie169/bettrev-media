@@ -8,9 +8,11 @@ const MONDIAD_GOALS = {
   ftd: '579'
 };
 
-// Propeller Ads S2S postback URLs — separate goal IDs per event type
-const PROPELLER_REGISTRATION = 'https://ad.propellerads.com/conversion.php?aid=3912571&pid=&tid=157268&visitor_id={CLICKID}&payout={PAYOUT}&goal=2';
-const PROPELLER_FTD = 'https://ad.propellerads.com/conversion.php?aid=3912571&pid=&tid=157268&visitor_id={CLICKID}&payout={PAYOUT}';
+// Propeller Ads S2S postback URLs
+// Primary S2S (no &goal=2) = REGISTRATION
+// Goal 2 (&goal=2) = FTD
+const PROPELLER_REGISTRATION = 'https://ad.propellerads.com/conversion.php?aid=3912571&pid=&tid=157268&visitor_id={CLICKID}&payout={PAYOUT}';
+const PROPELLER_FTD = 'https://ad.propellerads.com/conversion.php?aid=3912571&pid=&tid=157268&visitor_id={CLICKID}&payout={PAYOUT}&goal=2';
 
 const BRAND_CURRENCY = { easybet: 'ZAR' };
 const VALID_EVENTS = new Set(['visit', 'registration', 'ftd', 'deposit']);
