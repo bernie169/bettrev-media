@@ -1023,6 +1023,38 @@ async function populateNetworks(){
 
 async function sb(path,opts){opts=opts||{};return fetch(SB_URL+path,Object.assign({},opts,{headers:Object.assign({'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},opts.headers||{})}));}
 </script>
+
+<script>
+// Inject Propeller click ID (t1) into all Easybet affiliate links
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var t1 = params.get('t1') || params.get('clickid') || '';
+  if (!t1) return;
+  document.querySelectorAll('a[href*="ebpartners.click"]').forEach(function(a) {
+    try {
+      var url = new URL(a.href);
+      url.searchParams.set('t1', t1);
+      a.href = url.toString();
+    } catch(e) {}
+  });
+})();
+</script>
 </body>
 </html>
+
+<script>
+// Inject Propeller click ID (t1) into all Easybet affiliate links
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var t1 = params.get('t1') || params.get('clickid') || '';
+  if (!t1) return;
+  document.querySelectorAll('a[href*="ebpartners.click"]').forEach(function(a) {
+    try {
+      var url = new URL(a.href);
+      url.searchParams.set('t1', t1);
+      a.href = url.toString();
+    } catch(e) {}
+  });
+})();
+</script>
 </body></html>
